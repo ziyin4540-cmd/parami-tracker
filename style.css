@@ -11,8 +11,8 @@ body {
     margin: 0;
     background-color: var(--bg-color);
     color: var(--text-main);
-    /* အောက်ခြေ Menu နဲ့ အချက်အလက်တွေ မထပ်အောင် Margin ချန်ရန် */
-    padding-bottom: 80px; 
+    /* အောက်ခြေ Menu နဲ့ အချက်အလက်တွေ မထပ်အောင် အောက်ဘက်တွင် နေရာလွတ် ချန်ရန် */
+    padding-bottom: 90px; 
 }
 
 .container {
@@ -70,7 +70,7 @@ input[type="text"], input[type="number"], select {
     cursor: pointer;
 }
 
-/* Mobile Bottom Navigation Bar Layout အပြည့်အစုံ */
+/* Mobile Bottom Navigation Bar Layout (အောက်ခြေတွင် အမြဲရှိနေပြီး နှိပ်၍ရစေရန်) */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -81,8 +81,8 @@ input[type="text"], input[type="number"], select {
     justify-content: space-around;
     align-items: center;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    padding: 10px 0;
-    z-index: 1000;
+    padding: 8px 0;
+    z-index: 99999;
     box-sizing: border-box;
 }
 
@@ -92,22 +92,22 @@ input[type="text"], input[type="number"], select {
     align-items: center;
     justify-content: center;
     color: #4b5563;
-    font-size: 11px;
     text-decoration: none;
     cursor: pointer;
     flex: 1;
-    padding: 2px 0;
+    padding: 4px 0;
     text-align: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bottom-nav .nav-item i {
     font-size: 18px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .bottom-nav .nav-item span {
     font-size: 10px;
-    line-height: 1.2;
+    line-height: 1.1;
     white-space: nowrap;
 }
 
