@@ -19,16 +19,8 @@
     <!-- App Container -->
     <div class="container">
         
-        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
+        <!-- ၁။ ပင်မစာမျက်နှာ / ငွေသွင်းရန် (Home & Wallet Section) -->
         <div id="section-home" class="content-section">
-            <div class="card">
-                <h2>ပင်မစာမျက်နှာ</h2>
-                <p>Parami Group မှ ကြိုဆိုပါတယ်။ ဤနေရာတွင် အကျဉ်းချုပ် အချက်အလက်များကို ကြည့်ရှုနိုင်ပါသည်။</p>
-            </div>
-        </div>
-
-        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် စာမျက်နှာ (Wallet Section) -->
-        <div id="section-wallet" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
                 
@@ -67,13 +59,31 @@
                     <button onclick="addTransaction('withdraw')" style="flex: 1; background: #dc2626; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">ငွေပြန်နှုတ်မည်</button>
                 </div>
             </div>
+
+            <!-- ငွေစာရင်း မှတ်တမ်းများ -->
+            <div class="card" style="margin-top: 20px;">
+                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
+                <div id="transactions-list">
+                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် (Wallet Tab) -->
+        <div id="section-wallet" class="content-section" style="display: none;">
+            <div class="card">
+                <h2>ငွေစာရင်း သွင်း/ထုတ် စီမံရန်</h2>
+                <p>ဤနေရာတွင် ငွေစာရင်းအကျဉ်းချုပ်နှင့် ငွေပေးငွေယူများကို လုပ်ဆောင်နိုင်ပါသည်။</p>
+            </div>
         </div>
 
         <!-- ၃။ Users စာမျက်နှာ -->
         <div id="section-users" class="content-section" style="display: none;">
             <div class="card">
                 <h2>Users စာရင်း</h2>
-                <p>အဖွဲ့ဝင်များ စာရင်းကို ဤနေရာတွင် ကြည့်ရှုနိုင်ပါသည်။</p>
+                <div id="users-list-container">
+                    <p style="color: #6b7280;">အဖွဲ့ဝင်များ စာရင်းကို ချိတ်ဆက်နေပါသည်...</p>
+                </div>
             </div>
         </div>
 
@@ -81,7 +91,7 @@
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ဆက်တင်များ (Settings)</h2>
-                <p>အချက်အလက်များကို ပြင်ဆင်ရန်နေရာ။</p>
+                <p>သင့်ရဲ့ အကောင့်အချက်အလက်များနှင့် ပရိုဖိုင်ကို ပြင်ဆင်ရန်နေရာ။</p>
             </div>
         </div>
 
@@ -89,31 +99,32 @@
         <div id="section-admin" class="content-section" style="display: none;">
             <div class="card">
                 <h2>Admin Panel</h2>
-                <p>စီမံခန့်ခွဲမှု အပိုင်းများ။</p>
+                <p>အဖွဲ့ဝင်များ၏ အတည်ပြုချက်များနှင့် စီမံခန့်ခွဲမှု အပိုင်းများ။</p>
+                <div id="admin-panel-content"></div>
             </div>
         </div>
 
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (Fixed to Bottom) -->
+    <!-- Mobile Bottom Navigation Bar -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchSection('home')">
+        <div class="nav-item active" onclick="switchSection('home', event)">
             <i class="fas fa-home"></i>
             <span>ပင်မ</span>
         </div>
-        <div class="nav-item" onclick="switchSection('wallet')">
+        <div class="nav-item" onclick="switchSection('wallet', event)">
             <i class="fas fa-wallet"></i>
             <span>ငွေစာရင်း</span>
         </div>
-        <div class="nav-item" onclick="switchSection('users')">
+        <div class="nav-item" onclick="switchSection('users', event)">
             <i class="fas fa-users"></i>
             <span>Users</span>
         </div>
-        <div class="nav-item" onclick="switchSection('settings')">
+        <div class="nav-item" onclick="switchSection('settings', event)">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
         </div>
-        <div class="nav-item" onclick="switchSection('admin')">
+        <div class="nav-item" onclick="switchSection('admin', event)">
             <i class="fas fa-shield-alt"></i>
             <span>Admin</span>
         </div>
@@ -132,7 +143,7 @@
             formSection.style.display = checkbox.checked ? 'block' : 'none';
         }
 
-        function switchSection(sectionId) {
+        function switchSection(sectionId, event) {
             // Sections အားလုံးကို ဖျောက်မည်
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(sec => sec.style.display = 'none');
@@ -144,7 +155,9 @@
             // Nav items တွေရဲ့ active ကို ညှိမည်
             const navItems = document.querySelectorAll('.bottom-nav .nav-item');
             navItems.forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
         }
     </script>
 </body>
