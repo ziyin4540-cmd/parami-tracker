@@ -2,7 +2,8 @@ const SUPABASE_URL = 'https://kejqfatcmxxvjuseikhd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlanFmYXRjbXh4dmp1c2Vpa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNjExNjksImV4cCI6MjEwNzkzNzE2OX0.uBfqOcLzSC_vdd2xH2U3HHryebZx5Hm6ZhHVcp7EMro';
 const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let currentMemberId = 1; 
+// Database ရှိ UUID Format နှင့် ကိုက်ညီအောင် ပြောင်းလဲထားသည်
+let currentMemberId = '00000000-0000-0000-0000-000000000001'; 
 
 // ၁။ ပင်မစာမျက်နှာ (Home)
 async function loadHomeData() {
@@ -49,7 +50,7 @@ function loadTransactionsList(trans) {
                 </p>
                 <p style="margin: 3px 0 0 0; font-size: 12px; color: #6b7280;">မှတ်ချက် - ${t.note || 'မရှိပါ'}</p>
             </div>
-            <button onclick="requestDeleteTransaction(${t.id})" style="background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်ရန်တောင်းဆိုမည်</button>
+            <button onclick="requestDeleteTransaction('${t.id}')" style="background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်ရန်တောင်းဆိုမည်</button>
         </div>`;
     });
     listContainer.innerHTML = html;
@@ -189,7 +190,6 @@ async function loadMemberSettings() {
     }
 }
 
-// Social Link Row ထည့်သွင်းပေးသည့် Function
 function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now()) {
     let container = document.getElementById('social-links-container');
     let div = document.createElement('div');
@@ -223,7 +223,6 @@ async function saveMemberSettings() {
         let fileName = 'profile_' + currentMemberId + '_' + Date.now() + '.jpg';
         let { error: uploadErr } = await myDB.storage.from('members_bucket').upload(fileName, photoFile);
         if (uploadErr) {
-            console.error('Profile Upload Error:', uploadErr);
             Swal.fire('Upload အမှား', 'Profile ပုံ တင်၍မရပါ: ' + uploadErr.message, 'error');
             return;
         }
@@ -248,7 +247,6 @@ async function saveMemberSettings() {
                 let fileName = 'ss_' + currentMemberId + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
                 let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, ssFileInput);
                 if (ssErr) {
-                    console.error('SS Upload Error:', ssErr);
                     Swal.fire('Upload အမှား', 'SS ပုံ တင်၍မရပါ: ' + ssErr.message, 'error');
                     return;
                 }
@@ -282,7 +280,6 @@ async function saveMemberSettings() {
         loadHomeData();
         loadUsersDirectory();
     } else {
-        console.error('DB Update Error:', error);
         Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + error.message, 'error');
     }
 }
@@ -307,9 +304,9 @@ async function loadAdminPanel() {
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e5e7eb;">
                 <span style="font-size: 13px; font-weight: bold;">${u.name || 'အမည်မရှိ'}</span>
                 <div style="display: flex; gap: 5px;">
-                    <button onclick="updateMemberStatus(${u.id}, 'approved')" style="background: #059669; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">လက်ခံ</button>
-                    <button onclick="updateMemberStatus(${u.id}, 'suspended')" style="background: #d97706; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ရပ်ရန်</button>
-                    <button onclick="deleteMember(${u.id})" style="background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်</button>
+                    <button onclick="updateMemberStatus('${u.id}', 'approved')" style="background: #059669; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">လက်ခံ</button>
+                    <button onclick="updateMemberStatus('${u.id}', 'suspended')" style="background: #d97706; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ရပ်ရန်</button>
+                    <button onclick="deleteMember('${u.id}')" style="background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်</button>
                 </div>
             </div>`;
         });
@@ -326,7 +323,7 @@ async function loadAdminPanel() {
             html += `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e5e7eb;">
                 <span style="font-size: 13px;">ပမာဏ: ${t.amount} ${t.currency} (${t.note || 'မှတ်ချက်မရှိ'})</span>
-                <button onclick="adminDeleteTransaction(${t.id})" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">အပြီးတိုင် ဖျက်မည်</button>
+                <button onclick="adminDeleteTransaction('${t.id}')" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">အပြီးတိုင် ဖျက်မည်</button>
             </div>`;
         });
         reqContainer.innerHTML = html;
@@ -367,8 +364,30 @@ async function requestDeleteTransaction(id) {
     Swal.fire('တောင်းဆိုပြီးပါပြီ', 'Admin ထံသို့ ဖျက်ရန် တောင်းဆိုချက် ပို့ပြီးပါပြီ။', 'info');
 }
 
+// ၅။ အမှန်တကယ် အကောင့်ထွက်ခွာပေးမည့် Logout Function
 function logout() {
-    Swal.fire('ထွက်ခွာပါပြီ', 'အကောင့်မှ ထွက်လိုက်ပါပြီ။', 'success');
+    Swal.fire({
+        title: 'ထွက်ခွာမည်မှာ သေချာပါသလား။',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'ထွက်မည်',
+        cancelButtonText: 'မထွက်ပါ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.clear();
+            Swal.fire({
+                title: 'ထွက်ခွာပါပြီ',
+                text: 'အကောင့်မှ အောင်မြင်စွာ ထွက်လိုက်ပါပြီ။',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload(); // စာမျက်နှာကို အစမှ ပြန်လည် Refresh လုပ်ပေးမည်
+            });
+        }
+    });
 }
 
 // စတင်ချိန်တွင် Load လုပ်ရန်များ
