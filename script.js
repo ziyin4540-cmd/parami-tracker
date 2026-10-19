@@ -5,7 +5,6 @@ const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentMember = null;
 let isRegisterMode = false;
 
-// Helper: Ensure URL has protocol (Avoid 404 errors)
 function formatUrl(urlStr) {
     if (!urlStr) return '';
     let trimmed = urlStr.trim();
@@ -15,7 +14,7 @@ function formatUrl(urlStr) {
     return trimmed;
 }
 
-// 1. Auth Check on Load
+// 1. Auth Check (Admin Role စစ်ဆေးပြီး Nav Tab ဖျောက်/ဖော် ပြုလုပ်ခြင်း)
 function checkAuth() {
     const saved = localStorage.getItem('parami_logged_member');
     if (saved) {
@@ -25,10 +24,17 @@ function checkAuth() {
             document.getElementById('app-main').style.display = 'block';
             document.getElementById('app-nav').style.display = 'flex';
             
+            // Admin / ခေါင်းဆောင် ဖြစ်မှသာ Admin Nav Tab ကို ဖော်ပြမည်
+            const isAdmin = currentMember && (currentMember.role === 'ခေါင်းဆောင်' || currentMember.role === 'admin');
+            const adminNav = document.getElementById('nav-admin-item');
+            if (adminNav) {
+                adminNav.style.display = isAdmin ? 'flex' : 'none';
+            }
+
             loadHomeData();
             loadUsersDirectory();
             loadMemberSettings();
-            loadAdminPanel();
+            if (isAdmin) loadAdminPanel();
             return;
         } catch (e) { console.error(e); }
     }
@@ -62,7 +68,6 @@ async function handleAuth(e) {
     Swal.fire({ title: 'လုပ်ဆောင်နေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     if (isRegisterMode) {
-        // Register Logic
         const { data: existing } = await myDB.from('members').select('*').eq('username', username);
         if (existing && existing.length > 0) {
             Swal.fire('အမှားရှိသည်', 'ဤ Username ဖြင့် အကောင့်ဖွင့်ပြီးသားရှိပါသည်။', 'error');
@@ -88,7 +93,6 @@ async function handleAuth(e) {
             Swal.fire('အမှားရှိသည်', 'အကောင့်ဖွင့်၍ မရပါ: ' + (error ? error.message : ''), 'error');
         }
     } else {
-        // Login Logic
         const { data, error } = await myDB.from('members').select('*').eq('username', username).eq('password', password);
         if (data && data.length > 0 && !error) {
             let loggedUser = data[0];
@@ -106,7 +110,30 @@ async function handleAuth(e) {
     }
 }
 
-// 2. Home Data (Telegram Link ကို https://t.me/paramiteam သို့ မှန်ကန်စွာ ချိတ်ဆက်ထားသည်)
+// Section ပြောင်းလဲမှုတွင်လည်း Admin Role စစ်ဆေးခြင်း
+function switchSection(sectionId, event) {
+    if (sectionId === 'admin') {
+        const isAdmin = currentMember && (currentMember.role === 'ခေါင်းဆောင်' || currentMember.role === 'admin');
+        if (!isAdmin) {
+            Swal.fire('ခွင့်မပြုပါ', 'ဤ စာမျက်နှာကို ခေါင်းဆောင်/Admin သာ ကြည့်ရှုနိုင်ပါသည်။', 'warning');
+            return;
+        }
+    }
+
+    const sections = document.querySelectorAll('.content-section');
+    sections.forEach(sec => sec.style.display = 'none');
+
+    const target = document.getElementById('section-' + sectionId);
+    if (target) target.style.display = 'block';
+
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+}
+
+// 2. Home Data
 async function loadHomeData() {
     const { data: trans } = await myDB.from('transactions').select('*');
     let totalMMK = 0;
@@ -273,7 +300,6 @@ async function loadMemberSettings() {
     document.getElementById('settings-username').value = member.username || '';
     document.getElementById('settings-name').value = member.name || '';
     
-    // File inputs reset
     const photoInput = document.getElementById('settings-photo-file');
     if (photoInput) photoInput.value = '';
 
@@ -299,7 +325,6 @@ async function loadMemberSettings() {
     }
 }
 
-// Profile Photo Preview
 function renderProfilePreview(profileUrl) {
     const previewContainer = document.getElementById('current-profile-preview');
     if (!previewContainer) return;
@@ -333,7 +358,6 @@ function removeExistingProfilePhoto() {
     }
 }
 
-// Dynamic Social Links UI
 function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now()) {
     let container = document.getElementById('social-links-container');
     let div = document.createElement('div');
@@ -399,7 +423,6 @@ function removeSocialRow(btnElem) {
     if (cardItem) cardItem.remove();
 }
 
-// SAVE Settings
 async function saveMemberSettings() {
     if (!currentMember) return;
     Swal.fire({ title: 'သိမ်းဆည်းနေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -409,7 +432,6 @@ async function saveMemberSettings() {
     const previewContainer = document.getElementById('current-profile-preview');
     let existingProfileUrl = previewContainer ? previewContainer.dataset.existingUrl : '';
 
-    // 1. Profile Photo Upload or Update
     let profileUrl = existingProfileUrl;
     if (photoFile) {
         let fileName = 'profile_' + currentMember.username + '_' + Date.now() + '.jpg';
@@ -422,7 +444,6 @@ async function saveMemberSettings() {
         profileUrl = pubUrl.publicUrl;
     }
 
-    // 2. Social Links & Individual SS Photos Upload
     let socialItems = document.querySelectorAll('.social-card-item');
     let socialDataList = [];
 
@@ -483,8 +504,11 @@ async function saveMemberSettings() {
     }
 }
 
-// 6. Admin Panel Functions
+// 6. Admin Panel Functions (Admin / ခေါင်းဆောင် မဟုတ်ပါက ရပ်တန့်မည်)
 async function loadAdminPanel() {
+    const isAdmin = currentMember && (currentMember.role === 'ခေါင်းဆောင်' || currentMember.role === 'admin');
+    if (!isAdmin) return;
+
     const container = document.getElementById('admin-panel-content');
     container.innerHTML = `
         <h3 style="font-size: 15px; color: #374151;">အဖွဲ့ဝင် စီမံခန့်ခွဲရန် စာရင်း</h3>
@@ -608,5 +632,4 @@ function logout() {
     });
 }
 
-// Initialize Auth
 checkAuth();
