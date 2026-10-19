@@ -19,20 +19,35 @@
     <!-- App Container -->
     <div class="container">
         
-        <!-- ၁။ ပင်မစာမျက်နှာ / ငွေသွင်းရန် (Home & Wallet Section) -->
+        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
         <div id="section-home" class="content-section">
+            <div class="card">
+                <h2>ပင်မစာမျက်နှာ (Dashboard)</h2>
+                <p>Parami Group မှ ကြိုဆိုပါတယ်။ အကျဉ်းချုပ် ငွေစာရင်းရှင်းတမ်းများကို ဤနေရာတွင် ကြيုရှုနိုင်ပါသည်။</p>
+            </div>
+            
+            <div class="card" style="margin-top: 20px;">
+                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
+                <div id="transactions-list">
+                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် (Wallet Section) - ညီညာစေရန် Width များကို အချိုးကျပြင်ဆင်ထားသည် -->
+        <div id="section-wallet" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
                 
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <select id="trans-currency" style="padding: 10px; border-radius: 8px; border: 1px solid #d1d5db;">
+                <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+                    <select id="trans-currency" style="width: 110px; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; font-family: 'Padauk', sans-serif;">
                         <option value="MMK">MMK</option>
                         <option value="THB">THB</option>
                     </select>
-                    <input type="number" id="trans-amount" placeholder="ငွေပမာဏ" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box;">
+                    <input type="number" id="trans-amount" placeholder="ငွေပမာဏ" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box; font-family: 'Padauk', sans-serif;">
                 </div>
 
-                <input type="text" id="trans-note" placeholder="မှတ်ချက် ရိုက်ထည့်ရန်" style="width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box;">
+                <input type="text" id="trans-note" placeholder="မှတ်ချက် ရိုက်ထည့်ရန်" style="width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box; font-family: 'Padauk', sans-serif;">
 
                 <!-- အလှူရှင် Checkbox နှင့် Form -->
                 <div class="donor-box" style="margin-bottom: 15px; background: #f9fafb; padding: 15px; border-radius: 10px; border: 1px solid #e5e7eb;">
@@ -59,30 +74,14 @@
                     <button onclick="addTransaction('withdraw')" style="flex: 1; background: #dc2626; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">ငွေပြန်နှုတ်မည်</button>
                 </div>
             </div>
-
-            <!-- ငွေစာရင်း မှတ်တမ်းများ -->
-            <div class="card" style="margin-top: 20px;">
-                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
-                <div id="transactions-list">
-                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
-                </div>
-            </div>
         </div>
 
-        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် (Wallet Tab) -->
-        <div id="section-wallet" class="content-section" style="display: none;">
-            <div class="card">
-                <h2>ငွေစာရင်း သွင်း/ထုတ် စီမံရန်</h2>
-                <p>ဤနေရာတွင် ငွေစာရင်းအကျဉ်းချုပ်နှင့် ငွေပေးငွေယူများကို လုပ်ဆောင်နိုင်ပါသည်။</p>
-            </div>
-        </div>
-
-        <!-- ၃။ Users စာမျက်နှာ -->
+        <!-- ၃။ Users စာမျက်နှာ (အဖွဲ့ဝင်များစာရင်း တကယ့်ဒေတာဖြင့် ပေါ်လာမည်) -->
         <div id="section-users" class="content-section" style="display: none;">
             <div class="card">
-                <h2>Users စာရင်း</h2>
-                <div id="users-list-container">
-                    <p style="color: #6b7280;">အဖွဲ့ဝင်များ စာရင်းကို ချိတ်ဆက်နေပါသည်...</p>
+                <h2>အဖွဲ့ဝင်များ စာရင်း (Users)</h2>
+                <div id="users-list-container" style="margin-top: 15px;">
+                    <p style="color: #6b7280;">အဖွဲ့ဝင်များ စာရင်းကို ဆွဲထုတ်နေပါပြီ...</p>
                 </div>
             </div>
         </div>
@@ -91,16 +90,17 @@
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ဆက်တင်များ (Settings)</h2>
-                <p>သင့်ရဲ့ အကောင့်အချက်အလက်များနှင့် ပရိုဖိုင်ကို ပြင်ဆင်ရန်နေရာ။</p>
+                <p>သင့်ရဲ့ အကောင့်အချက်အလက်များနှင့် ပရိုဖိုင်ကို ဤနေရာတွင် ပြင်ဆင်နိုင်ပါသည်။</p>
             </div>
         </div>
 
         <!-- ၅။ Admin Panel စာမျက်နှာ -->
         <div id="section-admin" class="content-section" style="display: none;">
             <div class="card">
-                <h2>Admin Panel</h2>
-                <p>အဖွဲ့ဝင်များ၏ အတည်ပြုချက်များနှင့် စီမံခန့်ခွဲမှု အပိုင်းများ။</p>
-                <div id="admin-panel-content"></div>
+                <h2>Admin Panel စီမံခန့်ခွဲမှု</h2>
+                <div id="admin-panel-content" style="margin-top: 15px;">
+                    <p style="color: #6b7280;">Admin ခွင့်ပြုချက် စစ်ဆေးနေပါသည်...</p>
+                </div>
             </div>
         </div>
 
