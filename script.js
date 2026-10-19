@@ -2,10 +2,99 @@ const SUPABASE_URL = 'https://kejqfatcmxxvjuseikhd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlanFmYXRjbXh4dmp1c2Vpa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNjExNjksImV4cCI6MjEwNzkzNzE2OX0.uBfqOcLzSC_vdd2xH2U3HHryebZx5Hm6ZhHVcp7EMro';
 const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Database ရှိ UUID Format နှင့် ကိုက်ညီအောင် ပြောင်းလဲထားသည်
-let currentMemberId = '00000000-0000-0000-0000-000000000001'; 
+let currentMember = null;
+let isRegisterMode = false;
 
-// ၁။ ပင်မစာမျက်နှာ (Home)
+// 1. Auth Check on Load
+function checkAuth() {
+    const saved = localStorage.getItem('parami_logged_member');
+    if (saved) {
+        try {
+            currentMember = JSON.parse(saved);
+            document.getElementById('section-auth').style.display = 'none';
+            document.getElementById('app-main').style.display = 'block';
+            document.getElementById('app-nav').style.display = 'flex';
+            
+            loadHomeData();
+            loadUsersDirectory();
+            loadMemberSettings();
+            loadAdminPanel();
+            return;
+        } catch (e) { console.error(e); }
+    }
+    document.getElementById('section-auth').style.display = 'flex';
+    document.getElementById('app-main').style.display = 'none';
+    document.getElementById('app-nav').style.display = 'none';
+}
+
+function toggleAuthMode(e) {
+    if (e) e.preventDefault();
+    isRegisterMode = !isRegisterMode;
+    
+    document.getElementById('auth-title').innerText = isRegisterMode ? 'အကောင့်သစ်ဖွင့်ရန်' : 'အကောင့်ဝင်ရောက်ရန်';
+    document.getElementById('register-fields').style.display = isRegisterMode ? 'block' : 'none';
+    document.getElementById('auth-submit-btn').innerText = isRegisterMode ? 'အကောင့်ဖွင့်မည်' : 'ဝင်ရောက်မည်';
+    document.getElementById('auth-toggle-text').innerText = isRegisterMode ? 'အကောင့်ရှိပြီးသားပါက ' : 'အကောင့်မရှိသေးပါက ';
+    document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? 'အကောင့်ဝင်မည်' : 'အကောင့်သစ်ဖွင့်မည်';
+}
+
+async function handleAuth(e) {
+    e.preventDefault();
+    const username = document.getElementById('auth-username').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const name = document.getElementById('auth-name').value.trim();
+
+    if (!username || !password) {
+        Swal.fire('သတိပေးချက်', 'Username နှင့် Password ဖြည့်သွင်းပါ။', 'warning');
+        return;
+    }
+
+    Swal.fire({ title: 'လုပ်ဆောင်နေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    if (isRegisterMode) {
+        // Register Logic
+        const { data: existing } = await myDB.from('members').select('*').eq('username', username).single();
+        if (existing) {
+            Swal.fire('အမှားရှိသည်', 'ဤ Username ဖြင့် အကောင့်ဖွင့်ပြီးသားရှိပါသည်။', 'error');
+            return;
+        }
+
+        const newMember = {
+            username: username,
+            name: name || username,
+            password: password,
+            role: 'အဖွဲ့ဝင်',
+            status: 'approved'
+        };
+
+        const { data, error } = await myDB.from('members').insert([newMember]).select().single();
+        if (!error && data) {
+            localStorage.setItem('parami_logged_member', JSON.stringify(data));
+            Swal.fire('အောင်မြင်ပါသည်', 'အကောင့်ဖွင့်လှစ်ပြီးပါပြီ။', 'success').then(() => {
+                checkAuth();
+            });
+        } else {
+            Swal.fire('အမှားရှိသည်', 'အကောင့်ဖွင့်၍ မရပါ: ' + (error ? error.message : ''), 'error');
+        }
+    } else {
+        // Login Logic
+        const { data, error } = await myDB.from('members').select('*').eq('username', username).eq('password', password).single();
+        if (data && !error) {
+            if (data.status === 'suspended') {
+                Swal.fire('အကောင့်ရပ်ဆိုင်းထားသည်', 'သင့်အကောင့်ကို ရပ်ဆိုင်းထားပါသည်ခင်ဗျာ။', 'error');
+                return;
+            }
+            localStorage.setItem('parami_logged_member', JSON.stringify(data));
+            Swal.fire({ icon: 'success', title: 'ဝင်ရောက်မှု အောင်မြင်သည်', timer: 1000, showConfirmButton: false }).then(() => {
+                checkAuth();
+            });
+        } else {
+            Swal.fire('အမှားရှိသည်', 'Username သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။', 'error');
+        }
+    }
+}
+
+// 2. Home Data
 async function loadHomeData() {
     const { data: trans } = await myDB.from('transactions').select('*');
     let totalMMK = 0;
@@ -31,7 +120,6 @@ async function loadHomeData() {
     loadTransactionsList(trans);
 }
 
-// ငွေစာရင်း မှတ်တမ်းများ ပြသခြင်း
 function loadTransactionsList(trans) {
     const listContainer = document.getElementById('transactions-list');
     if (!trans || trans.length === 0) {
@@ -56,8 +144,9 @@ function loadTransactionsList(trans) {
     listContainer.innerHTML = html;
 }
 
-// ငွေသွင်းရန် / ငွေပြန်နှုတ်ရန်
+// 3. Transactions
 async function addTransaction(type) {
+    if (!currentMember) return;
     let currency = document.getElementById('trans-currency').value;
     let amount = document.getElementById('trans-amount').value;
     let note = document.getElementById('trans-note').value;
@@ -88,7 +177,7 @@ async function addTransaction(type) {
     }
 
     let { error } = await myDB.from('transactions').insert([{
-        member_id: currentMemberId,
+        member_id: currentMember.id,
         type: type,
         currency: currency,
         amount: Number(amount),
@@ -112,7 +201,7 @@ async function addTransaction(type) {
     }
 }
 
-// ၂။ Users စာရင်း (Profile photo, Name, Role နှင့် စုငွေများ ပြသခြင်း)
+// 4. Users Directory
 async function loadUsersDirectory() {
     const container = document.getElementById('users-list-container');
     const { data: users, error } = await myDB.from('members').select('*');
@@ -126,7 +215,7 @@ async function loadUsersDirectory() {
     let html = '';
     users.forEach(u => {
         let photo = u.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-        let name = u.name || 'အမည်မရှိ အဖွဲ့ဝင်';
+        let name = u.name || u.username || 'အမည်မရှိ အဖွဲ့ဝင်';
         
         let mmkSaved = u.saved_amount || 0;
         let thbSaved = u.saved_amount_thb || 0;
@@ -158,11 +247,13 @@ async function loadUsersDirectory() {
     container.innerHTML = html;
 }
 
-// ၃။ Settings စာမျက်နှာ (Social Link + SS ပုံ သီးသန့် ပါဝင်သော ပုံစံ)
+// 5. Settings
 async function loadMemberSettings() {
-    const { data: member, error } = await myDB.from('members').select('*').eq('id', currentMemberId).single();
+    if (!currentMember) return;
+    const { data: member, error } = await myDB.from('members').select('*').eq('id', currentMember.id).single();
     if (error || !member) return;
 
+    document.getElementById('settings-username').value = member.username || '';
     document.getElementById('settings-name').value = member.name || '';
     
     if (member.profile_url) {
@@ -210,17 +301,16 @@ function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now
     container.appendChild(div);
 }
 
-// Settings များကို Supabase သို့ သိမ်းဆည်းခြင်း
 async function saveMemberSettings() {
+    if (!currentMember) return;
     Swal.fire({ title: 'သိမ်းဆည်းနေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     let name = document.getElementById('settings-name').value;
     let photoFile = document.getElementById('settings-photo-file').files[0];
 
-    // ၁။ Profile Photo Upload
     let profileUrl = null;
     if (photoFile) {
-        let fileName = 'profile_' + currentMemberId + '_' + Date.now() + '.jpg';
+        let fileName = 'profile_' + currentMember.id + '_' + Date.now() + '.jpg';
         let { error: uploadErr } = await myDB.storage.from('members_bucket').upload(fileName, photoFile);
         if (uploadErr) {
             Swal.fire('Upload အမှား', 'Profile ပုံ တင်၍မရပါ: ' + uploadErr.message, 'error');
@@ -230,7 +320,6 @@ async function saveMemberSettings() {
         profileUrl = pubUrl.publicUrl;
     }
 
-    // ၂။ Social Links & Individual SS Photos Upload
     let socialItems = document.querySelectorAll('.social-card-item');
     let socialDataList = [];
 
@@ -244,7 +333,7 @@ async function saveMemberSettings() {
             let finalSsUrl = existingSsUrl;
 
             if (ssFileInput) {
-                let fileName = 'ss_' + currentMemberId + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
+                let fileName = 'ss_' + currentMember.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
                 let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, ssFileInput);
                 if (ssErr) {
                     Swal.fire('Upload အမှား', 'SS ပုံ တင်၍မရပါ: ' + ssErr.message, 'error');
@@ -272,26 +361,28 @@ async function saveMemberSettings() {
     };
     if (profileUrl) updateData.profile_url = profileUrl;
 
-    const { error } = await myDB.from('members').update(updateData).eq('id', currentMemberId);
+    const { data: updatedMember, error } = await myDB.from('members').update(updateData).eq('id', currentMember.id).select().single();
 
-    if (!error) {
+    if (!error && updatedMember) {
+        currentMember = updatedMember;
+        localStorage.setItem('parami_logged_member', JSON.stringify(updatedMember));
         Swal.fire('အောင်မြင်ပါသည်', 'အချက်အလက်များကို သိမ်းဆည်းပြီးပါပြီ။', 'success');
         loadMemberSettings();
         loadHomeData();
         loadUsersDirectory();
     } else {
-        Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + error.message, 'error');
+        Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + (error ? error.message : ''), 'error');
     }
 }
 
-// ၄။ Admin Panel
+// 6. Admin Panel Functions (Fully Fixed Status Toggle & Delete)
 async function loadAdminPanel() {
     const container = document.getElementById('admin-panel-content');
     container.innerHTML = `
-        <h3 style="font-size: 15px; color: #374151;">အဖွဲ့ဝင် အတည်ပြုရန် စာရင်း</h3>
+        <h3 style="font-size: 15px; color: #374151;">အဖွဲ့ဝင် စီမံခန့်ခွဲရန် စာရင်း</h3>
         <div id="admin-members-list"><p style="font-size: 13px; color: #6b7280;">အဖွဲ့ဝင်များ ဆွဲထုတ်နေပါသည်...</p></div>
         
-        <h3 style="font-size: 15px; color: #374151; margin-top: 20px;">ငွေစာရင်း အပြီးတိုင် ဖျက်ရန် (Admin)</h3>
+        <h3 style="font-size: 15px; color: #374151; margin-top: 20px;">ငွေစာရင်း မှတ်တမ်းများ (Admin)</h3>
         <div id="admin-delete-requests"><p style="font-size: 13px; color: #6b7280;">မှတ်တမ်းများ ဆွဲထုတ်နေပါသည်...</p></div>
     `;
 
@@ -300,13 +391,18 @@ async function loadAdminPanel() {
     let memHtml = '';
     if (users && users.length > 0) {
         users.forEach(u => {
+            let isSuspended = u.status === 'suspended';
             memHtml += `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e5e7eb;">
-                <span style="font-size: 13px; font-weight: bold;">${u.name || 'အမည်မရှိ'}</span>
+                <div>
+                    <span style="font-size: 13px; font-weight: bold;">${u.name || u.username}</span>
+                    <span style="font-size: 11px; color: ${isSuspended ? '#dc2626' : '#059669'}; margin-left: 5px;">(${isSuspended ? 'ရပ်ဆိုင်းထား' : 'လက်ခံထား'})</span>
+                </div>
                 <div style="display: flex; gap: 5px;">
-                    <button onclick="updateMemberStatus('${u.id}', 'approved')" style="background: #059669; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">လက်ခံ</button>
-                    <button onclick="updateMemberStatus('${u.id}', 'suspended')" style="background: #d97706; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ရပ်ရန်</button>
-                    <button onclick="deleteMember('${u.id}')" style="background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်</button>
+                    <button onclick="updateMemberStatus('${u.id}', '${isSuspended ? 'approved' : 'suspended'}')" style="background: ${isSuspended ? '#059669' : '#d97706'}; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                        ${isSuspended ? 'လက်ခံမည်' : 'ရပ်ဆိုင်းမည်'}
+                    </button>
+                    <button onclick="deleteMember('${u.id}')" style="background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">ဖျက်မည်</button>
                 </div>
             </div>`;
         });
@@ -332,39 +428,59 @@ async function loadAdminPanel() {
     }
 }
 
-async function updateMemberStatus(id, status) {
-    const { error } = await myDB.from('members').update({ status: status }).eq('id', id);
+async function updateMemberStatus(id, newStatus) {
+    Swal.fire({ title: 'ပြင်ဆင်နေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const { error } = await myDB.from('members').update({ status: newStatus }).eq('id', id);
     if (!error) {
         Swal.fire('အောင်မြင်ပါသည်', 'အဖွဲ့ဝင် အခြေအနေကို ပြောင်းလဲပြီးပါပြီ။', 'success');
         loadAdminPanel();
+        loadUsersDirectory();
+    } else {
+        Swal.fire('အမှားရှိသည်', 'ပြင်ဆင်၍ မရပါ: ' + error.message, 'error');
     }
 }
 
 async function deleteMember(id) {
-    const { error } = await myDB.from('members').delete().eq('id', id);
-    if (!error) {
-        Swal.fire('အောင်မြင်ပါသည်', 'အဖွဲ့ဝင်ကို ဖျက်လိုက်ပါပြီ။', 'success');
-        loadAdminPanel();
-        loadUsersDirectory();
-    }
+    Swal.fire({
+        title: 'ဖျက်ရန် သေချာပါသလား။',
+        text: 'ဤအဖွဲ့ဝင်၏ အချက်အလက်များ ပျက်သွားပါမည်။',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'ဖျက်မည်',
+        cancelButtonText: 'မဖျက်ပါ'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'ဖျက်နေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { error } = await myDB.from('members').delete().eq('id', id);
+            if (!error) {
+                Swal.fire('အောင်မြင်ပါသည်', 'အဖွဲ့ဝင်ကို ဖျက်လိုက်ပါပြီ။', 'success');
+                loadAdminPanel();
+                loadUsersDirectory();
+            } else {
+                Swal.fire('အမှားရှိသည်', 'ဖျက်၍ မရပါ: ' + error.message, 'error');
+            }
+        }
+    });
 }
 
 async function adminDeleteTransaction(id) {
     const { error } = await myDB.from('transactions').delete().eq('id', id);
     if (!error) {
-        Swal.fire('အောင်မြင်ပါသည်', 'ငွေစာရင်း မှတ်တမ်းကို အပြီးတိုင် ဖျက်လိုက်ပါပြီ။', 'success');
+        Swal.fire('အောင်မြင်ပါသည်', 'ငွေစာရင်း မှတ်တမ်းကို ဖျက်လိုက်ပါပြီ။', 'success');
         loadAdminPanel();
         loadHomeData();
     } else {
-        Swal.fire('အမှားရှိသည်', 'ဖျက်၍ မရပါ၊ ထပ်မံကြိုးစားပါ။', 'error');
+        Swal.fire('အမှားရှိသည်', 'ဖျက်၍ မရပါခင်ဗျာ။', 'error');
     }
 }
 
-async function requestDeleteTransaction(id) {
+function requestDeleteTransaction(id) {
     Swal.fire('တောင်းဆိုပြီးပါပြီ', 'Admin ထံသို့ ဖျက်ရန် တောင်းဆိုချက် ပို့ပြီးပါပြီ။', 'info');
 }
 
-// ၅။ အမှန်တကယ် အကောင့်ထွက်ခွာပေးမည့် Logout Function
+// 7. Logout
 function logout() {
     Swal.fire({
         title: 'ထွက်ခွာမည်မှာ သေချာပါသလား။',
@@ -376,22 +492,13 @@ function logout() {
         cancelButtonText: 'မထွက်ပါ'
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.clear();
-            Swal.fire({
-                title: 'ထွက်ခွာပါပြီ',
-                text: 'အကောင့်မှ အောင်မြင်စွာ ထွက်လိုက်ပါပြီ။',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                location.reload(); // စာမျက်နှာကို အစမှ ပြန်လည် Refresh လုပ်ပေးမည်
-            });
+            localStorage.removeItem('parami_logged_member');
+            currentMember = null;
+            checkAuth();
+            Swal.fire({ title: 'ထွက်ခွာပါပြီ', icon: 'success', timer: 1200, showConfirmButton: false });
         }
     });
 }
 
-// စတင်ချိန်တွင် Load လုပ်ရန်များ
-loadHomeData();
-loadUsersDirectory();
-loadMemberSettings();
-loadAdminPanel();
+// Initialize Auth
+checkAuth();
