@@ -3,15 +3,16 @@ const SUPABASE_URL = 'https://kejqfatcmxxvjuseikhd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlanFmYXRjbXh4dmp1c2Vpa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNjExNjksImV4cCI6MjEwNzkzNzE2OX0.uBfqOcLzSC_vdd2xH2U3HHryebZx5Hm6ZhHVcp7EMro';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const PSEUDO_DOMAIN = '@paramitracker.com'; // Username သီးသန့်သုံးရန် လှည့်ကွက်
+const PSEUDO_DOMAIN = '@paramitracker.com';
 
 async function register() {
-    const user = document.getElementById('username').value.trim();
+    // Space တွေကို အလိုအလျောက် ဖျက်ပေးမည့်စနစ် ထည့်ထားပါသည်
+    let user = document.getElementById('username').value.trim().replace(/\s+/g, '');
     const pass = document.getElementById('password').value;
     
     if(!user || pass.length < 6) return alert("Username ထည့်ပါ။ Password အနည်းဆုံး ၆ လုံး ရှိရပါမည်။");
 
-    document.getElementById('auth-msg').innerText = "လုပ်ဆောင်နေပါသည်...";
+    document.getElementById('auth-msg').innerText = "အကောင့် ဖွင့်နေပါသည်...";
 
     const { data, error } = await supabase.auth.signUp({
         email: user + PSEUDO_DOMAIN,
@@ -19,7 +20,7 @@ async function register() {
     });
 
     if (error) {
-        document.getElementById('auth-msg').innerText = "အမှားရှိနေပါသည် သို့မဟုတ် Username ရှိပြီးသားပါ။";
+        document.getElementById('auth-msg').innerText = "အမှားရှိနေပါသည် (သို့) ဒီ Username ရှိပြီးသားပါ။";
     } else {
         alert("အကောင့်ဖွင့်ပြီးပါပြီ။ Admin ခွင့်ပြုချက်ကို စောင့်ပါ။");
         document.getElementById('auth-msg').innerText = "";
@@ -28,7 +29,8 @@ async function register() {
 }
 
 async function login() {
-    const user = document.getElementById('username').value.trim();
+    // Space တွေကို အလိုအလျောက် ဖျက်ပေးမည့်စနစ်
+    let user = document.getElementById('username').value.trim().replace(/\s+/g, '');
     const pass = document.getElementById('password').value;
     
     if(!user || !pass) return alert("Username နှင့် Password ရိုက်ထည့်ပါ။");
@@ -123,5 +125,4 @@ async function updateSaving() {
     }
 }
 
-// Website စတက်တက်ချင်း စစ်ဆေးရန်
 checkUser();
