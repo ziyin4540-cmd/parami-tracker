@@ -60,13 +60,14 @@ async function handleAuth(e) {
         }
 
         const newMember = {
-    id: crypto.randomUUID(), // Database သို့ ID အသစ် တိုက်ရိုက် ထည့်သွင်းပေးရန်
-    username: username,
-    name: name || username,
-    password: password,
-    role: 'အဖွဲ့ဝင်',
-    status: 'approved'
-};
+            id: crypto.randomUUID(),
+            username: username,
+            name: name || username,
+            password: password,
+            role: 'အဖွဲ့ဝင်',
+            status: 'approved'
+        };
+
         const { data, error } = await myDB.from('members').insert([newMember]).select().single();
         if (!error && data) {
             localStorage.setItem('parami_logged_member', JSON.stringify(data));
@@ -247,7 +248,7 @@ async function loadUsersDirectory() {
     container.innerHTML = html;
 }
 
-// 5. Settings
+// 5. Settings (ပုံရွေးပြီးပါက ဖျက်နိုင်သည့် ခလုတ်များ ပါဝင်သည်)
 async function loadMemberSettings() {
     if (!currentMember) return;
     const { data: member, error } = await myDB.from('members').select('*').eq('id', currentMember.id).single();
@@ -256,10 +257,11 @@ async function loadMemberSettings() {
     document.getElementById('settings-username').value = member.username || '';
     document.getElementById('settings-name').value = member.name || '';
     
-    if (member.profile_url) {
-        document.getElementById('current-profile-preview').innerHTML = `
-            <img src="${member.profile_url}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #059669;">`;
-    }
+    // File inputs reset
+    const photoInput = document.getElementById('settings-photo-file');
+    if (photoInput) photoInput.value = '';
+
+    renderProfilePreview(member.profile_url);
 
     let container = document.getElementById('social-links-container');
     container.innerHTML = '';
@@ -281,6 +283,41 @@ async function loadMemberSettings() {
     }
 }
 
+// Profile Photo Preview & Clear Helper
+function renderProfilePreview(profileUrl) {
+    const previewContainer = document.getElementById('current-profile-preview');
+    if (!previewContainer) return;
+
+    let html = '';
+    if (profileUrl) {
+        html = `
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+            <img src="${profileUrl}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #059669;">
+            <button type="button" onclick="removeExistingProfilePhoto()" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Padauk', sans-serif;">
+                <i class="fas fa-trash-alt"></i> မူလပုံ ဖျက်မည်
+            </button>
+        </div>`;
+    }
+    previewContainer.innerHTML = html;
+    previewContainer.dataset.existingUrl = profileUrl || '';
+}
+
+function clearSelectedProfileFile() {
+    const photoInput = document.getElementById('settings-photo-file');
+    if (photoInput) photoInput.value = '';
+    const btnClear = document.getElementById('btn-clear-profile-file');
+    if (btnClear) btnClear.style.display = 'none';
+}
+
+function removeExistingProfilePhoto() {
+    const previewContainer = document.getElementById('current-profile-preview');
+    if (previewContainer) {
+        previewContainer.dataset.existingUrl = '';
+        previewContainer.innerHTML = "<p style='font-size: 12px; color: #dc2626; margin: 5px 0;'>မူလ ပရိုဖိုင်ပုံကို ဖျက်ရန် မှတ်သားထားပါသည်။</p>";
+    }
+}
+
+// Social Link Row
 function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now()) {
     let container = document.getElementById('social-links-container');
     let div = document.createElement('div');
@@ -291,14 +328,59 @@ function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now
         <div class="social-card-header">
             <input type="text" placeholder="Platform (ဥပမာ- Telegram)" class="social-platform form-input" value="${platform}" style="width: 35%;">
             <input type="text" placeholder="Link (https://...)" class="social-url form-input" value="${link}" style="flex: 1;">
+            <button type="button" onclick="removeSocialRow(this)" style="background: #fee2e2; color: #dc2626; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer;" title="Row ဖျက်ရန်">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
         <div class="social-card-ss">
-            <label style="font-size: 12px; color: #4b5563; font-weight: bold;">${platform || 'အကောင့်'} Profile SS:</label>
-            <input type="file" accept="image/*" class="social-ss-file file-input">
-            ${ssUrl ? `<img src="${ssUrl}" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #d1d5db;">` : ''}
+            <label style="font-size: 12px; color: #4b5563; font-weight: bold; width: 100%; display: block; margin-bottom: 4px;">${platform || 'အကောင့်'} Profile SS ပုံ:</label>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
+                <input type="file" accept="image/*" class="social-ss-file file-input" onchange="handleSSFileSelect(this)" style="flex: 1; min-width: 180px;">
+                <button type="button" class="btn-clear-ss-file" onclick="clearSelectedSSFile(this)" style="display: none; background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Padauk', sans-serif;">
+                    <i class="fas fa-times"></i> ရွေးထားသည့်ပုံ ဖျက်မည်
+                </button>
+            </div>
+            <div class="ss-preview-box" style="margin-top: 8px;">
+                ${ssUrl ? `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="${ssUrl}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 1px solid #d1d5db;">
+                    <button type="button" onclick="removeExistingSS(this)" style="background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'Padauk', sans-serif;">
+                        <i class="fas fa-trash-alt"></i> မူလ SS ဖျက်မည်
+                    </button>
+                </div>` : ''}
+            </div>
         </div>
     `;
     container.appendChild(div);
+}
+
+function handleSSFileSelect(inputElem) {
+    const parentRow = inputElem.closest('.social-card-ss');
+    const clearBtn = parentRow.querySelector('.btn-clear-ss-file');
+    if (inputElem.files && inputElem.files[0]) {
+        if (clearBtn) clearBtn.style.display = 'inline-block';
+    } else {
+        if (clearBtn) clearBtn.style.display = 'none';
+    }
+}
+
+function clearSelectedSSFile(btnElem) {
+    const parentRow = btnElem.closest('.social-card-ss');
+    const fileInput = parentRow.querySelector('.social-ss-file');
+    if (fileInput) fileInput.value = '';
+    btnElem.style.display = 'none';
+}
+
+function removeExistingSS(btnElem) {
+    const cardItem = btnElem.closest('.social-card-item');
+    if (cardItem) cardItem.dataset.ssUrl = '';
+    const previewBox = btnElem.closest('.ss-preview-box');
+    if (previewBox) previewBox.innerHTML = "<p style='font-size: 11px; color: #dc2626; margin: 3px 0;'>မူလ SS ပုံကို ဖျက်ရန် မှတ်သားထားပါသည်။</p>";
+}
+
+function removeSocialRow(btnElem) {
+    const cardItem = btnElem.closest('.social-card-item');
+    if (cardItem) cardItem.remove();
 }
 
 async function saveMemberSettings() {
@@ -307,8 +389,11 @@ async function saveMemberSettings() {
 
     let name = document.getElementById('settings-name').value;
     let photoFile = document.getElementById('settings-photo-file').files[0];
+    const previewContainer = document.getElementById('current-profile-preview');
+    let existingProfileUrl = previewContainer ? previewContainer.dataset.existingUrl : '';
 
-    let profileUrl = null;
+    // 1. Profile Photo Upload or Update
+    let profileUrl = existingProfileUrl;
     if (photoFile) {
         let fileName = 'profile_' + currentMember.id + '_' + Date.now() + '.jpg';
         let { error: uploadErr } = await myDB.storage.from('members_bucket').upload(fileName, photoFile);
@@ -320,6 +405,7 @@ async function saveMemberSettings() {
         profileUrl = pubUrl.publicUrl;
     }
 
+    // 2. Social Links & Individual SS Photos Upload
     let socialItems = document.querySelectorAll('.social-card-item');
     let socialDataList = [];
 
@@ -357,13 +443,18 @@ async function saveMemberSettings() {
 
     let updateData = {
         name: name,
+        profile_url: profileUrl,
         social_links: socialDataList
     };
-    if (profileUrl) updateData.profile_url = profileUrl;
 
-    const { data: updatedMember, error } = await myDB.from('members').update(updateData).eq('id', currentMember.id).select().single();
+    const { data: updatedMembers, error } = await myDB
+        .from('members')
+        .update(updateData)
+        .eq('id', currentMember.id)
+        .select();
 
-    if (!error && updatedMember) {
+    if (!error && updatedMembers && updatedMembers.length > 0) {
+        let updatedMember = updatedMembers[0];
         currentMember = updatedMember;
         localStorage.setItem('parami_logged_member', JSON.stringify(updatedMember));
         Swal.fire('အောင်မြင်ပါသည်', 'အချက်အလက်များကို သိမ်းဆည်းပြီးပါပြီ။', 'success');
@@ -371,11 +462,11 @@ async function saveMemberSettings() {
         loadHomeData();
         loadUsersDirectory();
     } else {
-        Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + (error ? error.message : ''), 'error');
+        Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + (error ? error.message : 'အချက်အလက် မတွေ့ပါ'), 'error');
     }
 }
 
-// 6. Admin Panel Functions (Fully Fixed Status Toggle & Delete)
+// 6. Admin Panel Functions
 async function loadAdminPanel() {
     const container = document.getElementById('admin-panel-content');
     container.innerHTML = `
