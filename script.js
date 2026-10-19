@@ -60,13 +60,13 @@ async function handleAuth(e) {
         }
 
         const newMember = {
-            username: username,
-            name: name || username,
-            password: password,
-            role: 'အဖွဲ့ဝင်',
-            status: 'approved'
-        };
-
+    id: crypto.randomUUID(), // Database သို့ ID အသစ် တိုက်ရိုက် ထည့်သွင်းပေးရန်
+    username: username,
+    name: name || username,
+    password: password,
+    role: 'အဖွဲ့ဝင်',
+    status: 'approved'
+};
         const { data, error } = await myDB.from('members').insert([newMember]).select().single();
         if (!error && data) {
             localStorage.setItem('parami_logged_member', JSON.stringify(data));
