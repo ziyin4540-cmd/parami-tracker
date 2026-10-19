@@ -18,6 +18,7 @@
         .btn-login { background: #007bff; color: white; }
         .btn-logout { background: #dc3545; color: white; }
         .btn-update { background: #ffc107; color: #333; }
+        .btn-admin { background: #343a40; color: white; margin-top: 15px; }
         .hidden { display: none; }
         #total-box { background: #d4edda; color: #155724; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; }
         .warning-box { color: #856404; background: #fff3cd; padding: 15px; border-radius: 6px; border: 1px solid #ffeeba; margin-top: 15px; font-weight: bold; }
@@ -25,6 +26,15 @@
         .saving-section h3 { margin-top: 0; color: #0056b3; }
         #my-saving { font-size: 20px; color: #d32f2f; }
         #error-log { color: red; font-weight: bold; margin-top: 10px; word-wrap: break-word; text-align: left; }
+        
+        /* Admin Dashboard UI */
+        #admin-panel { background: #fff3cd; padding: 15px; border-radius: 8px; border: 2px solid #ffc107; margin-top: 20px; text-align: left; }
+        #admin-panel h3 { text-align: center; color: #856404; margin-top: 0; }
+        .admin-list { list-style: none; padding: 0; }
+        .admin-list li { background: white; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .admin-list button { width: auto; padding: 5px 10px; margin: 0 0 0 5px; font-size: 14px; }
+        .btn-approve { background: #28a745; color: white; }
+        .btn-delete { background: #dc3545; color: white; }
     </style>
 </head>
 <body>
@@ -34,7 +44,6 @@
     <h2>🙏 Parami Tracker</h2>
     <p class="subtitle">ပါရမီ မှတ်တမ်း (ကုသိုလ်ဖြစ် ရန်ပုံငွေ)</p>
 
-    <!-- Error တွေပေါ်မယ့်နေရာ (အရေးကြီးဆုံးအပိုင်း) -->
     <div id="error-log"></div>
 
     <div id="auth-section">
@@ -49,6 +58,7 @@
         <div id="pending-msg" class="warning-box hidden">
             ⏳ Admin မှ ခွင့်ပြုချက် မပေးသေးပါ။<br>ခေတ္တစောင့်ဆိုင်းပေးပါ။
         </div>
+        
         <div id="approved-content" class="hidden">
             <div id="total-box">စုစုပေါင်း ရန်ပုံငွေ<br><span id="total-amount">0</span> ကျပ်</div>
             <div class="saving-section">
@@ -58,20 +68,33 @@
                 <button class="btn-update" onclick="updateSaving()">သိမ်းဆည်းမည် (Update)</button>
             </div>
         </div>
-        <button class="btn-logout" onclick="logout()" style="margin-top: 20px;">အကောင့်မှ ထွက်မည်</button>
+
+        <!-- Admin Only ခလုတ် -->
+        <button id="btn-admin-open" class="btn-admin hidden" onclick="openAdmin()">🛠 Admin Dashboard ဝင်ရန်</button>
+        <button class="btn-logout" onclick="logout()" style="margin-top: 10px;">အကောင့်မှ ထွက်မည်</button>
+        
+        <!-- Admin Dashboard မျက်နှာပြင် -->
+        <div id="admin-panel" class="hidden">
+            <h3>🛡 Admin Dashboard</h3>
+            <p style="font-weight: bold; color: #856404;">ခွင့်ပြုချက် တောင်းခံထားသူများ</p>
+            <ul id="pending-list" class="admin-list"></ul>
+            
+            <p style="font-weight: bold; color: #856404; margin-top: 20px;">လက်ရှိ အဖွဲ့ဝင်များ</p>
+            <ul id="approved-list" class="admin-list"></ul>
+            
+            <button onclick="closeAdmin()" style="background: #6c757d; color: white; margin-top: 15px;">Dashboard ပိတ်မည်</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // ဖုန်းစခရင်ပေါ်မှာ Error တွေကို အတိအကျပြပေးမယ့်စနစ်
     window.onerror = function(msg, url, lineNo) {
-        document.getElementById('error-log').innerText += "\nSystem Error: " + msg + " (Line: " + lineNo + ")";
+        document.getElementById('error-log').innerText += "\nSystem Error: " + msg;
         return false;
     };
 
     const SUPABASE_URL = 'https://kejqfatcmxxvjuseikhd.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlanFmYXRjbXh4dmp1c2Vpa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNjExNjksImV4cCI6MjEwNzkzNzE2OX0.uBfqOcLzSC_vdd2xH2U3HHryebZx5Hm6ZhHVcp7EMro';
-
     const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const PSEUDO_DOMAIN = '@paramitracker.com';
 
@@ -79,90 +102,70 @@
         try {
             let user = document.getElementById('username').value.trim().replace(/\s+/g, '');
             const pass = document.getElementById('password').value;
-            
-            if(!user || pass.length < 6) return alert("Username ထည့်ပါ။ Password အနည်းဆုံး ၆ လုံး ရှိရပါမည်။");
+            if(!user || pass.length < 6) return alert("Username နှင့် Password (အနည်းဆုံး ၆ လုံး) ထည့်ပါ။");
 
             document.getElementById('auth-msg').innerText = "အကောင့် ဖွင့်နေပါသည်...";
-
-            const { data, error } = await myDB.auth.signUp({
-                email: user + PSEUDO_DOMAIN,
-                password: pass
-            });
+            const { error } = await myDB.auth.signUp({ email: user + PSEUDO_DOMAIN, password: pass });
 
             if (error) {
-                document.getElementById('error-log').innerText = "Supabase Error: " + error.message;
                 document.getElementById('auth-msg').innerText = "အမှားရှိနေပါသည် (သို့) ဒီ Username ရှိပြီးသားပါ။";
             } else {
                 alert("အကောင့်ဖွင့်ပြီးပါပြီ။ Admin ခွင့်ပြုချက်ကို စောင့်ပါ။");
                 document.getElementById('auth-msg').innerText = "";
-                document.getElementById('error-log').innerText = "";
                 checkUser();
             }
-        } catch (err) {
-            document.getElementById('error-log').innerText = "JS Error: " + err.message;
-        }
+        } catch (err) { document.getElementById('error-log').innerText = err.message; }
     }
 
     async function login() {
         try {
             let user = document.getElementById('username').value.trim().replace(/\s+/g, '');
             const pass = document.getElementById('password').value;
-            
             if(!user || !pass) return alert("Username နှင့် Password ရိုက်ထည့်ပါ။");
+            
             document.getElementById('auth-msg').innerText = "ဝင်ရောက်နေပါသည်...";
-
-            const { data, error } = await myDB.auth.signInWithPassword({
-                email: user + PSEUDO_DOMAIN,
-                password: pass
-            });
+            const { error } = await myDB.auth.signInWithPassword({ email: user + PSEUDO_DOMAIN, password: pass });
 
             if (error) {
-                document.getElementById('error-log').innerText = "Supabase Error: " + error.message;
                 document.getElementById('auth-msg').innerText = "Username သို့မဟုတ် Password မှားနေပါသည်။";
             } else {
                 document.getElementById('auth-msg').innerText = "";
-                document.getElementById('error-log').innerText = "";
                 checkUser();
             }
-        } catch (err) {
-            document.getElementById('error-log').innerText = "JS Error: " + err.message;
-        }
+        } catch (err) { document.getElementById('error-log').innerText = err.message; }
     }
 
     async function logout() {
         await myDB.auth.signOut();
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('dashboard-section').classList.add('hidden');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
+        location.reload(); // ထွက်လျှင် Page Refresh လုပ်မည်
     }
 
     async function checkUser() {
         try {
             const { data: { user } } = await myDB.auth.getUser();
-            
             if (user) {
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 
-                const { data: memberData } = await myDB
-                    .from('members')
-                    .select('is_approved')
-                    .eq('id', user.id)
-                    .single();
+                const { data: memberData } = await myDB.from('members').select('is_approved, role').eq('id', user.id).single();
 
-                if (memberData && memberData.is_approved) {
-                    document.getElementById('approved-content').classList.remove('hidden');
-                    document.getElementById('pending-msg').classList.add('hidden');
-                    loadSavings(user.id);
-                } else {
-                    document.getElementById('pending-msg').classList.remove('hidden');
-                    document.getElementById('approved-content').classList.add('hidden');
+                if (memberData) {
+                    // Admin ဖြစ်ပါက Dashboard ခလုတ်ပြမည်
+                    if(memberData.role === 'admin') {
+                        document.getElementById('btn-admin-open').classList.remove('hidden');
+                    }
+
+                    if (memberData.is_approved) {
+                        document.getElementById('approved-content').classList.remove('hidden');
+                        document.getElementById('pending-msg').classList.add('hidden');
+                        loadSavings(user.id);
+                    } else {
+                        document.getElementById('pending-msg').classList.remove('hidden');
+                        document.getElementById('approved-content').classList.add('hidden');
+                    }
                 }
             }
-        } catch (err) {
-             console.log(err);
-        }
+        } catch (err) { console.log(err); }
     }
 
     async function loadSavings(userId) {
@@ -172,9 +175,7 @@
                 let total = allSavings.reduce((sum, record) => sum + Number(record.saved_amount), 0);
                 document.getElementById('total-amount').innerText = total.toLocaleString(); 
                 let myData = allSavings.find(r => r.id === userId);
-                if(myData) {
-                    document.getElementById('my-saving').innerText = Number(myData.saved_amount).toLocaleString();
-                }
+                if(myData) document.getElementById('my-saving').innerText = Number(myData.saved_amount).toLocaleString();
             }
         } catch (err) {}
     }
@@ -189,18 +190,68 @@
             btn.innerText = "သိမ်းဆည်းနေသည်...";
             
             const { error } = await myDB.from('savings').update({ saved_amount: Number(newAmount), updated_at: new Date() }).eq('id', user.id);
-
             btn.innerText = "သိမ်းဆည်းမည် (Update)";
 
-            if (error) {
-                document.getElementById('error-log').innerText = "Update Error: " + error.message;
-            } else {
-                alert("အောင်မြင်စွာ သိမ်းဆည်းလိုက်ပါပြီ။");
-                document.getElementById('new-amount').value = '';
-                loadSavings(user.id); 
+            if (error) { alert("အမှားရှိနေပါသည်။"); } 
+            else { document.getElementById('new-amount').value = ''; loadSavings(user.id); }
+        } catch (err) {}
+    }
+
+    // --- Admin Dashboard လုပ်ဆောင်ချက်များ ---
+    function openAdmin() {
+        let pwd = prompt("Admin Password ရိုက်ထည့်ပါ:");
+        if (pwd === "Wai295802") {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            document.getElementById('btn-admin-open').classList.add('hidden');
+            loadAdminData();
+        } else if (pwd !== null) {
+            alert("Password မှားနေပါသည်။ ဝင်ခွင့်မပြုပါ။");
+        }
+    }
+
+    function closeAdmin() {
+        document.getElementById('admin-panel').classList.add('hidden');
+        document.getElementById('btn-admin-open').classList.remove('hidden');
+    }
+
+    async function loadAdminData() {
+        document.getElementById('pending-list').innerHTML = "<li>Loading...</li>";
+        document.getElementById('approved-list').innerHTML = "<li>Loading...</li>";
+        
+        const { data, error } = await myDB.from('members').select('*').order('username');
+        if(error) return alert("ဒေတာဆွဲယူရာတွင် အမှားရှိပါသည်");
+
+        let pendingHTML = '';
+        let approvedHTML = '';
+
+        data.forEach(m => {
+            if (m.role !== 'admin') { // Admin ကိုယ်တိုင်ကို ဖျက်လို့မရအောင် ကာကွယ်ထားသည်
+                if(m.is_approved) {
+                    approvedHTML += `<li><span>${m.username}</span> <div><button class="btn-delete" onclick="deleteUser('${m.id}')">ဖျက်မည်</button></div></li>`;
+                } else {
+                    pendingHTML += `<li><span>${m.username}</span> <div><button class="btn-approve" onclick="approveUser('${m.id}')">လက်ခံမည်</button> <button class="btn-delete" onclick="deleteUser('${m.id}')">ဖျက်မည်</button></div></li>`;
+                }
             }
-        } catch (err) {
-             document.getElementById('error-log').innerText = "Update Exception: " + err.message;
+        });
+
+        document.getElementById('pending-list').innerHTML = pendingHTML || "<li>လူသစ် မရှိပါ။</li>";
+        document.getElementById('approved-list').innerHTML = approvedHTML || "<li>အဖွဲ့ဝင် မရှိပါ။</li>";
+    }
+
+    async function approveUser(id) {
+        if(confirm("ဤအကောင့်ကို လက်ခံမှာ သေချာပါသလား?")) {
+            await myDB.from('members').update({is_approved: true}).eq('id', id);
+            loadAdminData(); // စာရင်းကို အလိုအလျောက် Update လုပ်မည်
+        }
+    }
+
+    async function deleteUser(id) {
+        if(confirm("ဤအကောင့်ကို ဖျက်မှာ သေချာပါသလား? (မှတ်ချက် - ဤလုပ်ဆောင်ချက်ကို နောက်ပြန်ဆုတ်၍ မရပါ)")) {
+            // Foreign Key ပြဿနာမရှိစေရန် ငွေစာရင်း (savings) ကို အရင်ဖျက်ပါမည်
+            await myDB.from('savings').delete().eq('id', id);
+            // ထို့နောက် အကောင့် (members) ကို ဖျက်ပါမည်
+            await myDB.from('members').delete().eq('id', id);
+            loadAdminData();
         }
     }
 
