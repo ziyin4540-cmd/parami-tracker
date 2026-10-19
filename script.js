@@ -5,6 +5,7 @@ const PSEUDO_DOMAIN = '@paramitracker.com';
 
 let currentUser = null; 
 let currentPhotoBase64 = null;
+let currentDonorPhotoBase64 = null;
 let socialSS = { fb: null, tg: null, viber: null, tt: null, yt: null };
 
 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
@@ -46,7 +47,6 @@ function switchPage(pageId) {
     let targetPage = document.getElementById('page-' + pageId);
     if(targetPage) targetPage.classList.add('active');
     
-    // Find matching nav item and set active
     document.querySelectorAll('.nav-item').forEach(n => {
         if(n.getAttribute('onclick') && n.getAttribute('onclick').includes(pageId)) {
             n.classList.add('active');
@@ -116,7 +116,6 @@ async function checkAuth() {
         if(adminNav) adminNav.style.display = 'flex';
     }
     
-    // Savings check & create if not exists
     let { data: savingCheck } = await myDB.from('savings').select('*').eq('id', currentUser.id).single();
     if (!savingCheck) {
         await myDB.from('savings').insert({ id: currentUser.id, saved_amount: 0, saved_amount_thb: 0 });
@@ -140,12 +139,27 @@ async function loadDashboardData() {
         
         document.getElementById('my-savings-mmk').innerText = myMMK.toLocaleString();
         document.getElementById('my-savings-thb').innerText = myTHB.toLocaleString();
-        
-        let curMMKEl = document.getElementById('deposit-current-mmk');
-        let curTHBEl = document.getElementById('deposit-current-thb');
-        if(curMMKEl) curMMKEl.innerText = myMMK.toLocaleString();
-        if(curTHBEl) curTHBEl.innerText = myTHB.toLocaleString();
     }
+}
+
+// Donor Form Toggle & Image Upload
+function toggleDonorForm() {
+    let isChecked = document.getElementById('is-donor-checkbox').checked;
+    let sec = document.getElementById('donor-form-section');
+    if(sec) sec.style.display = isChecked ? 'block' : 'none';
+}
+
+let donorPhotoInput = document.getElementById('donor-photo-file');
+if(donorPhotoInput) {
+    donorPhotoInput.addEventListener('change', function(event) {
+        if(event.target.files[0]) {
+            compressImage(event.target.files[0], 200, function(base64) {
+                currentDonorPhotoBase64 = base64;
+                let prev = document.getElementById('preview-donor-photo');
+                if(prev) { prev.src = base64; prev.style.display = 'block'; }
+            });
+        }
+    });
 }
 
 async function handleTransaction(type) {
@@ -155,13 +169,36 @@ async function handleTransaction(type) {
     
     if(!amt || amt <= 0) return showError("ပမာဏ မှန်ကန်စွာ ထည့်ပါ။");
 
+    let isDonor = false;
+    let donorName = null;
+    let donorAddress = null;
+    
+    let donorCheckbox = document.getElementById('is-donor-checkbox');
+    if(donorCheckbox && donorCheckbox.checked) {
+        isDonor = true;
+        donorName = document.getElementById('donor-name').value.trim();
+        donorAddress = document.getElementById('donor-address').value.trim();
+        if(!donorName) return showError("အလှူရှင် အမည် ထည့်သွင်းပေးပါ။");
+    }
+
     showLoading("လုပ်ဆောင်နေပါသည်...");
 
     const { data: savingData } = await myDB.from('savings').select('*').eq('id', currentUser.id).single();
     let currentMMK = Number(savingData.saved_amount || 0);
     let currentTHB = Number(savingData.saved_amount_thb || 0);
 
-    await myDB.from('transactions').insert({ user_id: currentUser.id, amount: amt, type: type, note: note, currency: currency, delete_request_status: 'none' });
+    await myDB.from('transactions').insert({ 
+        user_id: currentUser.id, 
+        amount: amt, 
+        type: type, 
+        note: note, 
+        currency: currency, 
+        is_donor: isDonor,
+        donor_name: donorName,
+        donor_address: donorAddress,
+        donor_photo: currentDonorPhotoBase64,
+        delete_request_status: 'none' 
+    });
 
     if (currency === 'MMK') {
         if(type === 'withdraw' && amt > currentMMK) { Swal.close(); return showError("ပြန်နှုတ်မည့် MMK က လက်ရှိထက် များနေပါသည်။"); }
@@ -175,8 +212,19 @@ async function handleTransaction(type) {
     
     Swal.close();
     showSuccess("အောင်မြင်စွာ မှတ်တမ်းတင်လိုက်ပါပြီ"); 
+    
     document.getElementById('trans-amount').value = ''; 
     document.getElementById('trans-note').value = '';
+    if(donorCheckbox) {
+        donorCheckbox.checked = false;
+        toggleDonorForm();
+        document.getElementById('donor-name').value = '';
+        document.getElementById('donor-address').value = '';
+        let prev = document.getElementById('preview-donor-photo');
+        if(prev) prev.style.display = 'none';
+        currentDonorPhotoBase64 = null;
+    }
+
     loadDashboardData(); 
     loadMyTimeline();
 }
@@ -213,6 +261,8 @@ function renderTimeline(transData, elementId) {
                 }
             }
 
+            let donorBadge = t.is_donor ? `<div style="font-size:12px; color:#059669; font-weight:bold; margin-top:2px;"><i class="fa-solid fa-hand-holding-heart"></i> အလှူရှင်: ${t.donor_name || ''}</div>` : '';
+
             html += `
             <li>
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -220,6 +270,7 @@ function renderTimeline(transData, elementId) {
                         <div class="time-date">${formatTime(t.created_at)}</div>
                         <div class="time-amount ${colorClass}">${sign} ${Number(t.amount).toLocaleString()} ${curr}</div>
                         <div style="font-size:13px; color:#6b7280; margin-top:2px;">${t.note}</div>
+                        ${donorBadge}
                     </div>
                     <div style="text-align:right;">${actionHtml}</div>
                 </div>
