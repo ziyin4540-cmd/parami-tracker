@@ -79,6 +79,26 @@
                     </div>
                     <input type="text" id="trans-note" placeholder="မှတ်ချက် (ဥပမာ - လစဉ်ကြေး သွင်းခြင်း)" style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box;">
                     
+                    <!-- အလှူရှင် ထည့်သွင်းရန် Checkbox နှင့် Form -->
+                    <div style="margin-top: 15px; background: #f9fafb; padding: 15px; border-radius: 10px; border: 1px solid #e5e7eb;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: bold; cursor: pointer; color: var(--primary);">
+                            <input type="checkbox" id="is-donor-checkbox" onclick="toggleDonorForm()" style="width: 18px; height: 18px;">
+                            <span>ပြင်ပအလှူရှင်မှ လှူဒါန်းခြင်းဖြစ်ပါက ဤနေရာကို နှိပ်ပါ</span>
+                        </label>
+
+                        <div id="donor-form-section" style="display: none; margin-top: 12px;">
+                            <label style="font-size: 13px; font-weight: bold; color: #374151;">အလှူရှင် အမည်</label>
+                            <input type="text" id="donor-name" placeholder="ဥပမာ - ဦးကျော် + ဒေါ်အေး" style="width: 100%; padding: 8px; margin-top: 4px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box;">
+
+                            <label style="font-size: 13px; font-weight: bold; color: #374151;">လိပ်စာ / ဆက်သွယ်ရန်</label>
+                            <input type="text" id="donor-address" placeholder="ဥပမာ - ရန်ကုန်မြို့" style="width: 100%; padding: 8px; margin-top: 4px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box;">
+
+                            <label style="font-size: 13px; font-weight: bold; color: #374151;">အလှူရှင် ပုံ (သို့မဟုတ် ကုသိုလ်ဖြစ် ပုံ)</label>
+                            <input type="file" id="donor-photo-file" class="file-upload" accept="image/*">
+                            <img id="preview-donor-photo" src="" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; display: none; margin-top: 5px;">
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <button class="btn-main" onclick="handleTransaction('deposit')" style="flex: 1;">ငွေသွင်းမည်</button>
                         <button class="btn-danger" onclick="handleTransaction('withdraw')" style="flex: 1;">ငွေပြန်နှုတ်မည်</button>
@@ -189,3 +209,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
