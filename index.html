@@ -178,34 +178,35 @@
 
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (Login ဝင်ထားချိန်မှ ပေါ်မည်) -->
-    <div id="app-nav" class="bottom-nav" style="display: none;">
-        <div class="nav-item active" onclick="switchSection('home', event)">
-            <i class="fas fa-home"></i>
-            <span>ပင်မ</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('wallet', event)">
-            <i class="fas fa-wallet"></i>
-            <span>ငွေစာရင်း</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('users', event)">
-            <i class="fas fa-users"></i>
-            <span>Users</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('settings', event)">
-            <i class="fas fa-cog"></i>
-            <span>Settings</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('admin', event)">
-            <i class="fas fa-shield-alt"></i>
-            <span>Admin</span>
-        </div>
-        <div class="nav-item logout" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>ထွက်မည်</span>
-        </div>
+    <!-- Mobile Bottom Navigation Bar -->
+<div id="app-nav" class="bottom-nav" style="display: none;">
+    <div class="nav-item active" onclick="switchSection('home', event)">
+        <i class="fas fa-home"></i>
+        <span>ပင်မ</span>
     </div>
-
+    <div class="nav-item" onclick="switchSection('wallet', event)">
+        <i class="fas fa-wallet"></i>
+        <span>ငွေစာရင်း</span>
+    </div>
+    <div class="nav-item" onclick="switchSection('users', event)">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </div>
+    <div class="nav-item" onclick="switchSection('settings', event)">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+    </div>
+    <!-- id="nav-admin-item" ထည့်သွင်းထားသည် -->
+    <div id="nav-admin-item" class="nav-item" onclick="switchSection('admin', event)">
+        <i class="fas fa-shield-alt"></i>
+        <span>Admin</span>
+    </div>
+    <div class="nav-item logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>ထွက်မည်</span>
+    </div>
+</div>
+    
     <script src="script.js"></script>
     <script>
         function toggleDonorForm() {
