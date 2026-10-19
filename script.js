@@ -17,7 +17,7 @@ async function register() {
     let pass = document.getElementById('auth-pass').value;
     if(!user || pass.length < 6) return showError("Username နှင့် Password (အနည်းဆုံး ၆ လုံး) ထည့်ပါ။");
     showLoading("လုပ်ဆောင်နေပါသည်...");
-    const { error } = await myDB.auth.signUp({ email: user+PSEUDO_DOMAIN, password: pass, options: { data: { plain_password: pass } } });
+    const { error } = await myDB.auth.signUp({ email: user+PSEUDO_DOMAIN, password: pass });
     if (error) return showError("ဒီ Username ရှိပြီးသား (သို့) အမှားရှိနေပါသည်။");
     Swal.fire({ icon: 'info', title: 'စောင့်ဆိုင်းပေးပါ', text: 'အကောင့်ဖွင့်ပြီးပါပြီ။ Admin ခွင့်ပြုချက် စောင့်ပါ။', confirmButtonColor: '#059669' });
     checkAuth();
@@ -42,58 +42,87 @@ async function logout() {
 function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    
+    let targetPage = document.getElementById('page-' + pageId);
+    if(targetPage) targetPage.classList.add('active');
+    
+    // Find matching nav item and set active
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if(n.getAttribute('onclick') && n.getAttribute('onclick').includes(pageId)) {
+            n.classList.add('active');
+        }
+    });
 
     if(pageId === 'deposit') loadMyTimeline();
-    if(pageId === 'directory') loadDirectory();
     if(pageId === 'users') loadUsersList();
     if(pageId === 'admin') loadAdminData();
 }
 
 async function checkAuth() {
-    const { data: { user } } = await myDB.auth.getUser();
-    if (!user) return; 
-
-    currentUser = user;
-    const { data: member } = await myDB.from('members').select('*').eq('id', user.id).single();
-
-    if (member) {
-        Swal.close();
-        if(member.is_suspended) { await myDB.auth.signOut(); return Swal.fire({icon: 'error', title: 'အကောင့် ပိတ်ခံထားရပါသည်'}).then(()=>location.reload()); }
-        if(!member.is_approved) return Swal.fire({icon: 'warning', title: 'ခွင့်ပြုချက် မရသေးပါ', showConfirmButton: false});
-
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'flex';
-        
-        document.getElementById('my-name').innerText = member.username;
-        document.getElementById('my-profile-img').src = member.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-        document.getElementById('set-name').value = member.username;
-        
-        currentPhotoBase64 = member.profile_url;
-        if(currentPhotoBase64) {
-            document.getElementById('preview-photo').src = currentPhotoBase64;
-            document.getElementById('preview-photo').style.display = 'block';
-        }
-
-        let soc = member.social_links || {};
-        document.getElementById('soc-fb').value = soc.fb || '';
-        document.getElementById('soc-tg').value = soc.tg || '';
-        document.getElementById('soc-viber').value = soc.viber || '';
-        document.getElementById('soc-tt').value = soc.tt || '';
-        document.getElementById('soc-yt').value = soc.yt || '';
-
-        socialSS = member.social_screenshots || { fb: null, tg: null, viber: null, tt: null, yt: null };
-        ['fb', 'tg', 'viber', 'tt', 'yt'].forEach(k => {
-            if(socialSS[k]) {
-                document.getElementById(`preview-ss-${k}`).src = socialSS[k];
-                document.getElementById(`preview-ss-${k}`).style.display = 'block';
-            }
-        });
-
-        if(member.role === 'admin') document.getElementById('nav-admin').style.display = 'flex';
-        loadDashboardData();
+    const { data: { session }, error: sessionError } = await myDB.auth.getSession();
+    
+    if (!session || sessionError) {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app-screen').style.display = 'none';
+        return;
     }
+
+    currentUser = session.user;
+    const { data: member, error: memberError } = await myDB.from('members').select('*').eq('id', currentUser.id).single();
+
+    if (memberError || !member) {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app-screen').style.display = 'none';
+        return;
+    }
+
+    if(member.is_suspended) { 
+        await myDB.auth.signOut(); 
+        return Swal.fire({icon: 'error', title: 'အကောင့် ပိတ်ခံထားရပါသည်'}).then(()=>location.reload()); 
+    }
+    if(!member.is_approved) {
+        return Swal.fire({icon: 'warning', title: 'ခွင့်ပြုချက် မရသေးပါ', text: 'Admin မှ အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်။', showConfirmButton: false});
+    }
+
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
+    
+    document.getElementById('my-name').innerText = member.username || 'User';
+    document.getElementById('my-profile-img').src = member.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    document.getElementById('set-name').value = member.username || '';
+    
+    currentPhotoBase64 = member.profile_url;
+    if(currentPhotoBase64) {
+        let pImg = document.getElementById('preview-photo');
+        if(pImg) { pImg.src = currentPhotoBase64; pImg.style.display = 'block'; }
+    }
+
+    let soc = member.social_links || {};
+    ['fb', 'tg', 'viber', 'tt', 'yt'].forEach(k => {
+        let elem = document.getElementById('soc-' + k);
+        if(elem) elem.value = soc[k] || '';
+    });
+
+    socialSS = member.social_screenshots || { fb: null, tg: null, viber: null, tt: null, yt: null };
+    ['fb', 'tg', 'viber', 'tt', 'yt'].forEach(k => {
+        if(socialSS[k]) {
+            let pElem = document.getElementById(`preview-ss-${k}`);
+            if(pElem) { pElem.src = socialSS[k]; pElem.style.display = 'block'; }
+        }
+    });
+
+    if(member.role === 'admin') {
+        let adminNav = document.getElementById('nav-admin');
+        if(adminNav) adminNav.style.display = 'flex';
+    }
+    
+    // Savings check & create if not exists
+    let { data: savingCheck } = await myDB.from('savings').select('*').eq('id', currentUser.id).single();
+    if (!savingCheck) {
+        await myDB.from('savings').insert({ id: currentUser.id, saved_amount: 0, saved_amount_thb: 0 });
+    }
+
+    loadDashboardData();
 }
 
 async function loadDashboardData() {
@@ -112,60 +141,11 @@ async function loadDashboardData() {
         document.getElementById('my-savings-mmk').innerText = myMMK.toLocaleString();
         document.getElementById('my-savings-thb').innerText = myTHB.toLocaleString();
         
-        document.getElementById('deposit-current-mmk').innerText = myMMK.toLocaleString();
-        document.getElementById('deposit-current-thb').innerText = myTHB.toLocaleString();
+        let curMMKEl = document.getElementById('deposit-current-mmk');
+        let curTHBEl = document.getElementById('deposit-current-thb');
+        if(curMMKEl) curMMKEl.innerText = myMMK.toLocaleString();
+        if(curTHBEl) curTHBEl.innerText = myTHB.toLocaleString();
     }
-}
-
-async function loadDirectory() {
-    document.getElementById('directory-list').innerHTML = "<p>Loading...</p>";
-    const { data: members, error } = await myDB.from('members').select('*').eq('is_approved', true).order('username');
-
-    if (error) {
-        document.getElementById('directory-list').innerHTML = "<p style='color:red;'>အချက်အလက် ဆွဲထုတ်ရာတွင် အမှားရှိနေပါသည်။ Supabase RLS ကို ပိတ်ထားပေးပါ။</p>";
-        return;
-    }
-
-    let html = '';
-    if(members && members.length > 0) {
-        members.forEach(m => {
-            let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-            let soc = m.social_links || {};
-            let sss = m.social_screenshots || {};
-
-            let socialBtns = '';
-            if(soc.fb) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-fb"><i class="fa-brands fa-facebook"></i> ${soc.fb}</span> ${sss.fb ? `<button class="btn-ss" onclick="showSSModal('${sss.fb}', 'Facebook SS')">SS</button>` : ''}</div>`;
-            if(soc.tg) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-tg"><i class="fa-brands fa-telegram"></i> ${soc.tg}</span> ${sss.tg ? `<button class="btn-ss" onclick="showSSModal('${sss.tg}', 'Telegram SS')">SS</button>` : ''}</div>`;
-            if(soc.viber) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-viber"><i class="fa-brands fa-viber"></i> ${soc.viber}</span> ${sss.viber ? `<button class="btn-ss" onclick="showSSModal('${sss.viber}', 'Viber SS')">SS</button>` : ''}</div>`;
-            if(soc.tt) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-tt"><i class="fa-brands fa-tiktok"></i> ${soc.tt}</span> ${sss.tt ? `<button class="btn-ss" onclick="showSSModal('${sss.tt}', 'TikTok SS')">SS</button>` : ''}</div>`;
-            if(soc.yt) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-yt"><i class="fa-brands fa-youtube"></i> ${soc.yt}</span> ${sss.yt ? `<button class="btn-ss" onclick="showSSModal('${sss.yt}', 'YouTube SS')">SS</button>` : ''}</div>`;
-
-            if(!socialBtns) socialBtns = `<span style="color:#9ca3af; font-size:13px;">ဆက်သွယ်ရန် လိပ်စာ မထည့်ရသေးပါ။</span>`;
-
-            html += `
-            <div class="card" style="display:flex; gap:15px; align-items:flex-start; background:#f9fafb; border:1px solid #e5e7eb; margin-bottom:15px;">
-                <img src="${pic}" class="user-avatar" style="width:60px; height:60px;">
-                <div style="flex:1;">
-                    <h3 style="margin:0 0 5px 0; color:var(--primary);">${m.username}</h3>
-                    <div style="margin-top:5px;">${socialBtns}</div>
-                </div>
-            </div>`;
-        });
-    } else {
-        html = "<p>အတည်ပြုပြီး အဖွဲ့ဝင် မရှိသေးပါ။</p>";
-    }
-    document.getElementById('directory-list').innerHTML = html;
-}
-
-function showSSModal(base64Img, title) {
-    Swal.fire({
-        title: title,
-        imageUrl: base64Img,
-        imageWidth: '100%',
-        imageAlt: 'Verification Screenshot',
-        confirmButtonColor: '#059669',
-        confirmButtonText: 'ပိတ်မည်'
-    });
 }
 
 async function handleTransaction(type) {
@@ -184,15 +164,16 @@ async function handleTransaction(type) {
     await myDB.from('transactions').insert({ user_id: currentUser.id, amount: amt, type: type, note: note, currency: currency, delete_request_status: 'none' });
 
     if (currency === 'MMK') {
-        if(type === 'withdraw' && amt > currentMMK) return showError("ပြန်နှုတ်မည့် MMK က လက်ရှိထက် များနေပါသည်။");
+        if(type === 'withdraw' && amt > currentMMK) { Swal.close(); return showError("ပြန်နှုတ်မည့် MMK က လက်ရှိထက် များနေပါသည်။"); }
         let newMMK = type === 'deposit' ? currentMMK + amt : currentMMK - amt;
         await myDB.from('savings').update({ saved_amount: newMMK, updated_at: new Date() }).eq('id', currentUser.id);
     } else {
-        if(type === 'withdraw' && amt > currentTHB) return showError("ပြန်နှုတ်မည့် THB က လက်ရှိထက် များနေပါသည်။");
+        if(type === 'withdraw' && amt > currentTHB) { Swal.close(); return showError("ပြန်နှုတ်မည့် THB က လက်ရှိထက် များနေပါသည်။"); }
         let newTHB = type === 'deposit' ? currentTHB + amt : currentTHB - amt;
         await myDB.from('savings').update({ saved_amount_thb: newTHB, updated_at: new Date() }).eq('id', currentUser.id);
     }
     
+    Swal.close();
     showSuccess("အောင်မြင်စွာ မှတ်တမ်းတင်လိုက်ပါပြီ"); 
     document.getElementById('trans-amount').value = ''; 
     document.getElementById('trans-note').value = '';
@@ -211,6 +192,8 @@ async function loadMyTimeline() {
 }
 
 function renderTimeline(transData, elementId) {
+    let el = document.getElementById(elementId);
+    if(!el) return;
     let html = '';
     let isOwn = (elementId === 'my-timeline');
     
@@ -226,7 +209,7 @@ function renderTimeline(transData, elementId) {
                 if (t.delete_request_status === 'pending') {
                     actionHtml = `<span style="font-size:11px; color:#d97706; background:#fef3c7; padding:4px 8px; border-radius:12px; margin-top:5px; display:inline-block;">ဖျက်ရန် စောင့်ဆိုင်းဆဲ</span>`;
                 } else {
-                    actionHtml = `<button onclick="requestDeleteTx('${t.id}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 10px; font-size:11px; border-radius:12px; margin-top:5px; width:auto; font-weight:bold;">အပြီးပိုင် ဖျက်ရန်</button>`;
+                    actionHtml = `<button onclick="requestDeleteTx('${t.id}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 10px; font-size:11px; border-radius:12px; margin-top:5px; width:auto; font-weight:bold; cursor:pointer;">အပြီးပိုင် ဖျက်ရန်</button>`;
                 }
             }
 
@@ -245,7 +228,7 @@ function renderTimeline(transData, elementId) {
     } else {
         html = "<p style='color:#9ca3af;'>မှတ်တမ်း မရှိသေးပါ။</p>";
     }
-    document.getElementById(elementId).innerHTML = html;
+    el.innerHTML = html;
 }
 
 async function requestDeleteTx(txId) {
@@ -264,42 +247,46 @@ async function requestDeleteTx(txId) {
     if (reason) {
         showLoading("တောင်းဆိုနေပါသည်...");
         const {error} = await myDB.from('transactions').update({ delete_request_status: 'pending', delete_reason: reason }).eq('id', txId);
+        Swal.close();
         if(error) showError(error.message);
         else { showSuccess("Admin ထံသို့ တောင်းဆိုချက် ပို့ပြီးပါပြီ"); loadMyTimeline(); }
     }
 }
 
 async function loadUsersList() {
-    document.getElementById('users-list').innerHTML = "<p>Loading...</p>";
+    let uList = document.getElementById('users-list');
+    if(!uList) return;
+    uList.innerHTML = "<p>Loading...</p>";
+    
     const { data: members } = await myDB.from('members').select('*').eq('is_approved', true);
     const { data: savings } = await myDB.from('savings').select('*');
 
     let html = '';
-    members.forEach(m => {
-        let s = savings.find(x => x.id === m.id);
-        let mmk = s ? Number(s.saved_amount || 0).toLocaleString() : '0';
-        let thb = s ? Number(s.saved_amount_thb || 0).toLocaleString() : '0';
-        let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-        
-        html += `
-        <li class="user-row" onclick="viewUserProfile('${m.id}', '${m.username}', '${pic}', '${mmk}', '${thb}')" style="cursor:pointer;">
-            <div style="display:flex; align-items:center;">
-                <img src="${pic}" class="user-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-                <span style="font-weight:bold;">${m.username}</span>
-            </div>
-            <div style="text-align:right; font-size:13px;">
-                <b style="color:#059669;">${mmk} MMK</b><br>
-                <b style="color:#0284c7;">${thb} THB</b>
-            </div>
-        </li>`;
-    });
-    document.getElementById('users-list').innerHTML = html;
+    if(members) {
+        members.forEach(m => {
+            let s = savings ? savings.find(x => x.id === m.id) : null;
+            let mmk = s ? Number(s.saved_amount || 0).toLocaleString() : '0';
+            let thb = s ? Number(s.saved_amount_thb || 0).toLocaleString() : '0';
+            let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+            
+            html += `
+            <li class="user-row" onclick="viewUserProfile('${m.id}', '${m.username}', '${pic}', '${mmk}', '${thb}')" style="cursor:pointer;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="${pic}" class="user-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                    <span style="font-weight:bold;">${m.username}</span>
+                </div>
+                <div style="text-align:right; font-size:13px;">
+                    <b style="color:#059669;">${mmk} MMK</b><br>
+                    <b style="color:#0284c7;">${thb} THB</b>
+                </div>
+            </li>`;
+        });
+    }
+    uList.innerHTML = html || "<p>အဖွဲ့ဝင် မရှိသေးပါ။</p>";
 }
 
 async function viewUserProfile(id, name, pic, mmk, thb) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-profile-view').classList.add('active');
-
+    switchPage('profile-view');
     document.getElementById('view-user-img').src = pic;
     document.getElementById('view-user-name').innerText = name;
     document.getElementById('view-user-total-mmk').innerText = mmk;
@@ -328,33 +315,34 @@ function compressImage(file, maxWidth, callback) {
     reader.readAsDataURL(file);
 }
 
-document.getElementById('set-photo-file').addEventListener('change', function(event) {
-    if(event.target.files[0]) {
-        compressImage(event.target.files[0], 250, function(base64) {
-            currentPhotoBase64 = base64;
-            document.getElementById('preview-photo').src = base64;
-            document.getElementById('preview-photo').style.display = 'block';
-        });
-    }
-});
-
-// Social SS Handlers
-function setupSSUpload(key, previewId) {
-    document.getElementById(`set-ss-${key}-file`).addEventListener('change', function(event) {
+let photoInput = document.getElementById('set-photo-file');
+if(photoInput) {
+    photoInput.addEventListener('change', function(event) {
         if(event.target.files[0]) {
-            compressImage(event.target.files[0], 500, function(base64) {
-                socialSS[key] = base64;
-                document.getElementById(previewId).src = base64;
-                document.getElementById(previewId).style.display = 'block';
+            compressImage(event.target.files[0], 250, function(base64) {
+                currentPhotoBase64 = base64;
+                let prev = document.getElementById('preview-photo');
+                if(prev) { prev.src = base64; prev.style.display = 'block'; }
             });
         }
     });
 }
-setupSSUpload('fb', 'preview-ss-fb');
-setupSSUpload('tg', 'preview-ss-tg');
-setupSSUpload('viber', 'preview-ss-viber');
-setupSSUpload('tt', 'preview-ss-tt');
-setupSSUpload('yt', 'preview-ss-yt');
+
+function setupSSUpload(key, previewId) {
+    let inp = document.getElementById(`set-ss-${key}-file`);
+    if(inp) {
+        inp.addEventListener('change', function(event) {
+            if(event.target.files[0]) {
+                compressImage(event.target.files[0], 500, function(base64) {
+                    socialSS[key] = base64;
+                    let p = document.getElementById(previewId);
+                    if(p) { p.src = base64; p.style.display = 'block'; }
+                });
+            }
+        });
+    }
+}
+['fb', 'tg', 'viber', 'tt', 'yt'].forEach(k => setupSSUpload(k, `preview-ss-${k}`));
 
 async function saveSettings() {
     let newName = document.getElementById('set-name').value;
@@ -374,6 +362,7 @@ async function saveSettings() {
         social_screenshots: socialSS
     }).eq('id', currentUser.id);
 
+    Swal.close();
     if (error) { showError("အမှားရှိနေပါသည်။"); } 
     else { 
         showSuccess("Profile နှင့် ဆက်သွယ်ရန် လိပ်စာများ သိမ်းဆည်းပြီးပါပြီ"); 
@@ -386,31 +375,36 @@ async function loadAdminData() {
     const { data: members } = await myDB.from('members').select('*').order('username');
     let pendingHTML = ''; let approvedHTML = '';
 
-    members.forEach(m => {
-        if (m.role !== 'admin') { 
-            let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-            let passText = m.raw_password ? m.raw_password : 'မသိရပါ';
-            let basicInfo = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${pic}" class="user-avatar" style="width:40px; height:40px;">
-                    <div>
-                        <span style="font-weight:bold;">${m.username}</span><br>
-                        <span style="font-size: 13px; color: #059669;"><i class="fa-solid fa-key"></i> ${passText}</span>
-                    </div>
-                </div>`;
+    if(members) {
+        members.forEach(m => {
+            if (m.role !== 'admin') { 
+                let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                let passText = m.raw_password ? m.raw_password : 'သိမ်းဆည်းထားခြင်းမရှိ';
+                let basicInfo = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${pic}" class="user-avatar" style="width:40px; height:40px;">
+                        <div>
+                            <span style="font-weight:bold;">${m.username}</span><br>
+                            <span style="font-size: 13px; color: #059669;"><i class="fa-solid fa-key"></i> ${passText}</span>
+                        </div>
+                    </div>`;
 
-            if(!m.is_approved) {
-                pendingHTML += `<li class="user-row">${basicInfo}<div><button class="btn-main" onclick="adminUserAction('${m.id}','approve')" style="padding:5px 10px; font-size:12px;">လက်ခံ</button></div></li>`;
-            } else {
-                let suspendBtn = m.is_suspended 
-                    ? `<button class="btn-sub" onclick="adminUserAction('${m.id}','resume')" style="padding:5px 10px; font-size:12px;">ဖွင့်</button>`
-                    : `<button style="background:#f59e0b; color:white; padding:5px 10px; font-size:12px; border:none; border-radius:12px;" onclick="adminUserAction('${m.id}','suspend')">ပိတ်</button>`;
-                approvedHTML += `<li class="user-row">${basicInfo}<div style="display:flex; gap:5px;">${suspendBtn}<button class="btn-danger" onclick="adminUserAction('${m.id}','delete')" style="padding:5px 10px; font-size:12px;">ဖျက်</button></div></li>`;
+                if(!m.is_approved) {
+                    pendingHTML += `<li class="user-row">${basicInfo}<div><button class="btn-main" onclick="adminUserAction('${m.id}','approve')" style="padding:5px 10px; font-size:12px;">လက်ခံ</button></div></li>`;
+                } else {
+                    let suspendBtn = m.is_suspended 
+                        ? `<button class="btn-sub" onclick="adminUserAction('${m.id}','resume')" style="padding:5px 10px; font-size:12px;">ဖွင့်</button>`
+                        : `<button style="background:#f59e0b; color:white; padding:5px 10px; font-size:12px; border:none; border-radius:12px; cursor:pointer;" onclick="adminUserAction('${m.id}','suspend')">ပိတ်</button>`;
+                    approvedHTML += `<li class="user-row">${basicInfo}<div style="display:flex; gap:5px;">${suspendBtn}<button class="btn-danger" onclick="adminUserAction('${m.id}','delete')" style="padding:5px 10px; font-size:12px;">ဖျက်</button></div></li>`;
+                }
             }
-        }
-    });
-    document.getElementById('admin-pending-list').innerHTML = pendingHTML || "<p>လူသစ် မရှိပါ။</p>";
-    document.getElementById('admin-approved-list').innerHTML = approvedHTML || "<p>အဖွဲ့ဝင် မရှိပါ။</p>";
+        });
+    }
+    
+    let pList = document.getElementById('admin-pending-list');
+    let aList = document.getElementById('admin-approved-list');
+    if(pList) pList.innerHTML = pendingHTML || "<p>လူသစ် မရှိပါ။</p>";
+    if(aList) aList.innerHTML = approvedHTML || "<p>အဖွဲ့ဝင် မရှိပါ။</p>";
 
     const { data: delReqs } = await myDB.from('transactions').select('*, members(username)').eq('delete_request_status', 'pending');
     let reqHTML = '';
@@ -436,7 +430,8 @@ async function loadAdminData() {
             </li>`;
         });
     }
-    document.getElementById('admin-delete-requests').innerHTML = reqHTML || "<p>ဖျက်သိမ်းရန် တောင်းဆိုချက် မရှိပါ။</p>";
+    let dList = document.getElementById('admin-delete-requests');
+    if(dList) dList.innerHTML = reqHTML || "<p>ဖျက်သိမ်းရန် တောင်းဆိုချက် မရှိပါ။</p>";
 }
 
 async function adminUserAction(id, action) {
