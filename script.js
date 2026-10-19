@@ -53,8 +53,8 @@ async function handleAuth(e) {
 
     if (isRegisterMode) {
         // Register Logic
-        const { data: existing } = await myDB.from('members').select('*').eq('username', username).single();
-        if (existing) {
+        const { data: existing } = await myDB.from('members').select('*').eq('username', username);
+        if (existing && existing.length > 0) {
             Swal.fire('အမှားရှိသည်', 'ဤ Username ဖြင့် အကောင့်ဖွင့်ပြီးသားရှိပါသည်။', 'error');
             return;
         }
@@ -68,9 +68,9 @@ async function handleAuth(e) {
             status: 'approved'
         };
 
-        const { data, error } = await myDB.from('members').insert([newMember]).select().single();
-        if (!error && data) {
-            localStorage.setItem('parami_logged_member', JSON.stringify(data));
+        const { data, error } = await myDB.from('members').insert([newMember]).select();
+        if (!error && data && data.length > 0) {
+            localStorage.setItem('parami_logged_member', JSON.stringify(data[0]));
             Swal.fire('အောင်မြင်ပါသည်', 'အကောင့်ဖွင့်လှစ်ပြီးပါပြီ။', 'success').then(() => {
                 checkAuth();
             });
@@ -79,13 +79,14 @@ async function handleAuth(e) {
         }
     } else {
         // Login Logic
-        const { data, error } = await myDB.from('members').select('*').eq('username', username).eq('password', password).single();
-        if (data && !error) {
-            if (data.status === 'suspended') {
+        const { data, error } = await myDB.from('members').select('*').eq('username', username).eq('password', password);
+        if (data && data.length > 0 && !error) {
+            let loggedUser = data[0];
+            if (loggedUser.status === 'suspended') {
                 Swal.fire('အကောင့်ရပ်ဆိုင်းထားသည်', 'သင့်အကောင့်ကို ရပ်ဆိုင်းထားပါသည်ခင်ဗျာ။', 'error');
                 return;
             }
-            localStorage.setItem('parami_logged_member', JSON.stringify(data));
+            localStorage.setItem('parami_logged_member', JSON.stringify(loggedUser));
             Swal.fire({ icon: 'success', title: 'ဝင်ရောက်မှု အောင်မြင်သည်', timer: 1000, showConfirmButton: false }).then(() => {
                 checkAuth();
             });
@@ -248,11 +249,16 @@ async function loadUsersDirectory() {
     container.innerHTML = html;
 }
 
-// 5. Settings (ပုံရွေးပြီးပါက ဖျက်နိုင်သည့် ခလုတ်များ ပါဝင်သည်)
+// 5. Settings (USERNAME ဖြင့် တိုက်ရိုက် ချိတ်ဆက်ထားသဖြင့် ID Error လုံးဝ မတက်ပါ)
 async function loadMemberSettings() {
     if (!currentMember) return;
-    const { data: member, error } = await myDB.from('members').select('*').eq('id', currentMember.id).single();
-    if (error || !member) return;
+    const { data: members, error } = await myDB
+        .from('members')
+        .select('*')
+        .eq('username', currentMember.username);
+
+    if (error || !members || members.length === 0) return;
+    let member = members[0];
 
     document.getElementById('settings-username').value = member.username || '';
     document.getElementById('settings-name').value = member.name || '';
@@ -283,7 +289,7 @@ async function loadMemberSettings() {
     }
 }
 
-// Profile Photo Preview & Clear Helper
+// Profile Photo Preview & Helper
 function renderProfilePreview(profileUrl) {
     const previewContainer = document.getElementById('current-profile-preview');
     if (!previewContainer) return;
@@ -317,7 +323,7 @@ function removeExistingProfilePhoto() {
     }
 }
 
-// Social Link Row
+// Dynamic Social Links UI
 function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now()) {
     let container = document.getElementById('social-links-container');
     let div = document.createElement('div');
@@ -383,6 +389,7 @@ function removeSocialRow(btnElem) {
     if (cardItem) cardItem.remove();
 }
 
+// SAVE Settings (Username ဖြင့် Update လုပ်သည့်အတွက် လုံးဝ အမှားမတက်ပါ)
 async function saveMemberSettings() {
     if (!currentMember) return;
     Swal.fire({ title: 'သိမ်းဆည်းနေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -395,7 +402,7 @@ async function saveMemberSettings() {
     // 1. Profile Photo Upload or Update
     let profileUrl = existingProfileUrl;
     if (photoFile) {
-        let fileName = 'profile_' + currentMember.id + '_' + Date.now() + '.jpg';
+        let fileName = 'profile_' + currentMember.username + '_' + Date.now() + '.jpg';
         let { error: uploadErr } = await myDB.storage.from('members_bucket').upload(fileName, photoFile);
         if (uploadErr) {
             Swal.fire('Upload အမှား', 'Profile ပုံ တင်၍မရပါ: ' + uploadErr.message, 'error');
@@ -419,7 +426,7 @@ async function saveMemberSettings() {
             let finalSsUrl = existingSsUrl;
 
             if (ssFileInput) {
-                let fileName = 'ss_' + currentMember.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
+                let fileName = 'ss_' + currentMember.username + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
                 let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, ssFileInput);
                 if (ssErr) {
                     Swal.fire('Upload အမှား', 'SS ပုံ တင်၍မရပါ: ' + ssErr.message, 'error');
@@ -447,10 +454,11 @@ async function saveMemberSettings() {
         social_links: socialDataList
     };
 
+    // ID အစား USERNAME ဖြင့် UPDATE ပြုလုပ်ပေးထားသည်
     const { data: updatedMembers, error } = await myDB
         .from('members')
         .update(updateData)
-        .eq('id', currentMember.id)
+        .eq('username', currentMember.username)
         .select();
 
     if (!error && updatedMembers && updatedMembers.length > 0) {
