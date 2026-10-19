@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parami Tracker - ပါရမီ မှတ်တမ်း</title>
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Pyidaungsu', Arial, sans-serif; padding: 20px; background: #e9ecef; }
+        .container { max-width: 450px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* လိုဂိုဒီဇိုင်း */
+        .logo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; } 
+        
+        h2 { color: #333; margin: 0 0 5px 0; }
+        p.subtitle { color: #666; margin-bottom: 20px; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { opacity: 0.9; }
+        
+        .btn-register { background: #28a745; color: white; }
+        .btn-login { background: #007bff; color: white; }
+        .btn-logout { background: #dc3545; color: white; }
+        .btn-update { background: #ffc107; color: #333; }
+        
+        .hidden { display: none; }
+        #total-box { background: #d4edda; color: #155724; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; }
+        .warning-box { color: #856404; background: #fff3cd; padding: 15px; border-radius: 6px; border: 1px solid #ffeeba; margin-top: 15px; font-weight: bold; }
+        .saving-section { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        .saving-section h3 { margin-top: 0; color: #0056b3; }
+        #my-saving { font-size: 20px; color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- သင့်ကိုယ်ပိုင် လိုဂိုပုံ ထည့်ရန် နေရာ -->
+    <img src="logo.png" alt="Parami Tracker Logo" class="logo">
+    
+    <h2>🙏 Parami Tracker</h2>
+    <p class="subtitle">ပါရမီ မှတ်တမ်း (ကုသိုလ်ဖြစ် ရန်ပုံငွေ)</p>
+
+    <!-- Login / Register အပိုင်း -->
+    <div id="auth-section">
+        <input type="text" id="username" placeholder="အမည် (Username)">
+        <input type="password" id="password" placeholder="စကားဝှက် (Password ၆ လုံးအထက်)">
+        <button class="btn-login" onclick="login()">ဝင်ရောက်မည်</button>
+        <button class="btn-register" onclick="register()">အကောင့်အသစ်လုပ်မည်</button>
+        <p id="auth-msg" style="color: red; font-size: 14px;"></p>
+    </div>
+
+    <!-- အကောင့်ဝင်ပြီးနောက် တွေ့ရမည့်အပိုင်း -->
+    <div id="dashboard-section" class="hidden">
+        
+        <!-- Admin အတည်ပြုချက် စောင့်နေချိန် -->
+        <div id="pending-msg" class="warning-box hidden">
+            ⏳ Admin မှ ခွင့်ပြုချက် မပေးသေးပါ။<br>ခေတ္တစောင့်ဆိုင်းပေးပါ။
+        </div>
+
+        <!-- အတည်ပြုပြီးပါက မြင်ရမည့် အပိုင်း -->
+        <div id="approved-content" class="hidden">
+            <div id="total-box">စုစုပေါင်း ရန်ပုံငွေ<br><span id="total-amount">0</span> ကျပ်</div>
+            
+            <div class="saving-section">
+                <h3>မိမိ၏ စုငွေစာရင်း</h3>
+                <p>လက်ရှိ သင့်စုငွေ: <b id="my-saving">0</b> ကျပ်</p>
+                <input type="number" id="new-amount" placeholder="စုငွေ ပမာဏအသစ် ရိုက်ထည့်ပါ">
+                <button class="btn-update" onclick="updateSaving()">သိမ်းဆည်းမည် (Update)</button>
+            </div>
+        </div>
+
+        <button class="btn-logout" onclick="logout()" style="margin-top: 20px;">အကောင့်မှ ထွက်မည်</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
