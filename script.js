@@ -2,10 +2,9 @@ const SUPABASE_URL = 'https://kejqfatcmxxvjuseikhd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlanFmYXRjbXh4dmp1c2Vpa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNjExNjksImV4cCI6MjEwNzkzNzE2OX0.uBfqOcLzSC_vdd2xH2U3HHryebZx5Hm6ZhHVcp7EMro';
 const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// လက်ရှိ Login ဝင်ထားသော Member ID (Default = 1)
 let currentMemberId = 1; 
 
-// ၁။ ပင်မစာမျက်နှာ ဒေတာနှင့် စုစုပေါင်းစုငွေများကို ဆွဲထုတ်ရန်
+// ၁။ ပင်မစာမျက်နှာ (Home)
 async function loadHomeData() {
     const { data: trans } = await myDB.from('transactions').select('*');
     let totalMMK = 0;
@@ -56,7 +55,7 @@ function loadTransactionsList(trans) {
     listContainer.innerHTML = html;
 }
 
-// ငွေသွင်းရန် / ငွေပြန်နှုတ်ရန် (Database သို့ သိမ်းဆည်းခြင်း)
+// ငွေသွင်းရန် / ငွေပြန်နှုတ်ရန်
 async function addTransaction(type) {
     let currency = document.getElementById('trans-currency').value;
     let amount = document.getElementById('trans-amount').value;
@@ -88,6 +87,7 @@ async function addTransaction(type) {
     }
 
     let { error } = await myDB.from('transactions').insert([{
+        member_id: currentMemberId,
         type: type,
         currency: currency,
         amount: Number(amount),
@@ -105,15 +105,17 @@ async function addTransaction(type) {
         document.getElementById('is-donor-checkbox').checked = false;
         document.getElementById('donor-form-section').style.display = 'none';
         loadHomeData();
+        loadUsersDirectory();
     } else {
         Swal.fire('အမှားရှိသည်', 'သိမ်းဆည်း၍ မရပါ၊ ထပ်မံကြိုးစားပါ။', 'error');
     }
 }
 
-// ၂။ Users စာရင်း (Profile photo, Name, စုငွေ ပြသခြင်း)
+// ၂။ Users စာရင်း (Profile photo, Name, Role နှင့် စုငွေများ ပြသခြင်း)
 async function loadUsersDirectory() {
     const container = document.getElementById('users-list-container');
     const { data: users, error } = await myDB.from('members').select('*');
+    const { data: trans } = await myDB.from('transactions').select('*');
 
     if (error || !users) {
         container.innerHTML = "<p style='color: red; text-align: center;'>အဖွဲ့ဝင်စာရင်း ဆွဲထုတ်၍ မရပါခင်ဗျာ။</p>";
@@ -124,19 +126,38 @@ async function loadUsersDirectory() {
     users.forEach(u => {
         let photo = u.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
         let name = u.name || 'အမည်မရှိ အဖွဲ့ဝင်';
+        
+        let mmkSaved = u.saved_amount || 0;
+        let thbSaved = u.saved_amount_thb || 0;
+
+        if (trans) {
+            let userTrans = trans.filter(t => t.member_id === u.id);
+            userTrans.forEach(t => {
+                let amt = Number(t.amount);
+                if (t.currency === 'MMK') mmkSaved += (t.type === 'withdraw' ? -amt : amt);
+                if (t.currency === 'THB') thbSaved += (t.type === 'withdraw' ? -amt : amt);
+            });
+        }
+
         html += `
-        <div style="display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-            <img src="${photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #059669;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-            <div>
-                <h4 style="margin: 0; color: #1f2937; font-size: 16px;">${name}</h4>
-                <p style="margin: 3px 0 0 0; font-size: 13px; color: #059669; font-weight: bold;">အဖွဲ့ဝင်</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="${photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #059669;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                <div>
+                    <h4 style="margin: 0; color: #1f2937; font-size: 15px;">${name}</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">${u.role || 'အဖွဲ့ဝင်'}</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0; font-size: 13px; font-weight: bold; color: #059669;">${mmkSaved.toLocaleString()} MMK</p>
+                <p style="margin: 2px 0 0 0; font-size: 13px; font-weight: bold; color: #2563eb;">${thbSaved.toLocaleString()} THB</p>
             </div>
         </div>`;
     });
     container.innerHTML = html;
 }
 
-// ၃။ Settings စာမျက်နှာ အချက်အလက်များ Load လုပ်ခြင်း
+// ၃။ Settings စာမျက်နှာ (Social Link + SS ပုံ သီးသန့် ပါဝင်သော ပုံစံ)
 async function loadMemberSettings() {
     const { data: member, error } = await myDB.from('members').select('*').eq('id', currentMemberId).single();
     if (error || !member) return;
@@ -148,51 +169,45 @@ async function loadMemberSettings() {
             <img src="${member.profile_url}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #059669;">`;
     }
 
-    if (member.social_links) {
-        let links = typeof member.social_links === 'string' ? JSON.parse(member.social_links) : member.social_links;
-        let container = document.getElementById('social-links-container');
-        container.innerHTML = '';
-        for (const [platform, url] of Object.entries(links)) {
-            container.innerHTML += `
-            <div class="social-input-row">
-                <input type="text" placeholder="Platform" class="social-platform form-input" value="${platform}" style="width: 35%;">
-                <input type="text" placeholder="Link" class="social-url form-input" value="${url}" style="flex: 1;">
-            </div>`;
-        }
-    }
-
-    window.currentSSList = [];
-    if (member.social_screenshots) {
-        let ssArr = typeof member.social_screenshots === 'string' ? JSON.parse(member.social_screenshots) : member.social_screenshots;
-        window.currentSSList = ssArr;
-        renderSSPreview();
-    }
-}
-
-function renderSSPreview() {
-    let ssContainer = document.getElementById('current-ss-preview');
-    ssContainer.innerHTML = '';
-    (window.currentSSList || []).forEach((ssUrl, idx) => {
-        ssContainer.innerHTML += `
-        <div style="position: relative;">
-            <img src="${ssUrl}" style="width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #d1d5db;">
-            <span onclick="removeSSPhoto(${idx})" style="position: absolute; top: -5px; right: -5px; background: #dc2626; color: white; border-radius: 50%; width: 18px; height: 18px; text-align: center; font-size: 11px; cursor: pointer; line-height: 18px;">&times;</span>
-        </div>`;
-    });
-}
-
-function removeSSPhoto(index) {
-    window.currentSSList.splice(index, 1);
-    renderSSPreview();
-}
-
-function addSocialLinkField() {
     let container = document.getElementById('social-links-container');
-    container.innerHTML += `
-    <div class="social-input-row">
-        <input type="text" placeholder="Platform (ဥပမာ- Viber)" class="social-platform form-input" style="width: 35%;">
-        <input type="text" placeholder="Link / ဖုန်းနံပါတ်" class="social-url form-input" style="flex: 1;">
-    </div>`;
+    container.innerHTML = '';
+
+    let linksArray = [];
+    if (member.social_links) {
+        try {
+            linksArray = typeof member.social_links === 'string' ? JSON.parse(member.social_links) : member.social_links;
+        } catch (e) { console.log(e); }
+    }
+
+    if (Array.isArray(linksArray) && linksArray.length > 0) {
+        linksArray.forEach((item, index) => {
+            addSocialLinkRow(item.platform, item.link, item.ss, index);
+        });
+    } else {
+        addSocialLinkRow('Telegram', '', '', 0);
+        addSocialLinkRow('Facebook', '', '', 1);
+    }
+}
+
+// Social Link Row ထည့်သွင်းပေးသည့် Function
+function addSocialLinkRow(platform = '', link = '', ssUrl = '', index = Date.now()) {
+    let container = document.getElementById('social-links-container');
+    let div = document.createElement('div');
+    div.className = 'social-card-item';
+    div.dataset.ssUrl = ssUrl;
+
+    div.innerHTML = `
+        <div class="social-card-header">
+            <input type="text" placeholder="Platform (ဥပမာ- Telegram)" class="social-platform form-input" value="${platform}" style="width: 35%;">
+            <input type="text" placeholder="Link (https://...)" class="social-url form-input" value="${link}" style="flex: 1;">
+        </div>
+        <div class="social-card-ss">
+            <label style="font-size: 12px; color: #4b5563; font-weight: bold;">${platform || 'အကောင့်'} Profile SS:</label>
+            <input type="file" accept="image/*" class="social-ss-file file-input">
+            ${ssUrl ? `<img src="${ssUrl}" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #d1d5db;">` : ''}
+        </div>
+    `;
+    container.appendChild(div);
 }
 
 // Settings များကို Supabase သို့ သိမ်းဆည်းခြင်း
@@ -201,8 +216,8 @@ async function saveMemberSettings() {
 
     let name = document.getElementById('settings-name').value;
     let photoFile = document.getElementById('settings-photo-file').files[0];
-    let ssFiles = document.getElementById('settings-ss-files').files;
 
+    // ၁။ Profile Photo Upload
     let profileUrl = null;
     if (photoFile) {
         let fileName = 'profile_' + currentMemberId + '_' + Date.now() + '.jpg';
@@ -213,36 +228,43 @@ async function saveMemberSettings() {
         }
     }
 
-    let platforms = document.querySelectorAll('.social-platform');
-    let urls = document.querySelectorAll('.social-url');
-    let socialLinksObj = {};
-    platforms.forEach((p, idx) => {
-        let pName = p.value.trim();
-        let pUrl = urls[idx].value.trim();
-        if (pName && pUrl) {
-            socialLinksObj[pName] = pUrl;
-            if (pName.toLowerCase() === 'telegram') {
-                localStorage.setItem('parami_telegram', pUrl);
-            }
-        }
-    });
+    // ၂။ Social Links & Individual SS Photos Upload
+    let socialItems = document.querySelectorAll('.social-card-item');
+    let socialDataList = [];
 
-    let updatedSSList = [...(window.currentSSList || [])];
-    if (ssFiles && ssFiles.length > 0) {
-        for (let file of ssFiles) {
-            let fileName = 'ss_' + currentMemberId + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
-            let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, file);
-            if (!ssErr) {
-                let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
-                updatedSSList.push(pubUrl.publicUrl);
+    for (let item of socialItems) {
+        let pName = item.querySelector('.social-platform').value.trim();
+        let pLink = item.querySelector('.social-url').value.trim();
+        let ssFileInput = item.querySelector('.social-ss-file').files[0];
+        let existingSsUrl = item.dataset.ssUrl || '';
+
+        if (pName && pLink) {
+            let finalSsUrl = existingSsUrl;
+
+            if (ssFileInput) {
+                let fileName = 'ss_' + currentMemberId + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
+                let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, ssFileInput);
+                if (!ssErr) {
+                    let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
+                    finalSsUrl = pubUrl.publicUrl;
+                }
+            }
+
+            socialDataList.push({
+                platform: pName,
+                link: pLink,
+                ss: finalSsUrl
+            });
+
+            if (pName.toLowerCase() === 'telegram') {
+                localStorage.setItem('parami_telegram', pLink);
             }
         }
     }
 
     let updateData = {
         name: name,
-        social_links: socialLinksObj,
-        social_screenshots: updatedSSList
+        social_links: socialDataList
     };
     if (profileUrl) updateData.profile_url = profileUrl;
 
@@ -252,12 +274,13 @@ async function saveMemberSettings() {
         Swal.fire('အောင်မြင်ပါသည်', 'အချက်အလက်များကို သိမ်းဆည်းပြီးပါပြီ။', 'success');
         loadMemberSettings();
         loadHomeData();
+        loadUsersDirectory();
     } else {
         Swal.fire('အမှားရှိသည်', 'သိမ်းဆည်း၍ မရပါခင်ဗျာ။', 'error');
     }
 }
 
-// ၄။ Admin Panel (အကောင့်အတည်ပြုခြင်း/ငြင်းပယ်ခြင်း/ရပ်ဆိုင်းခြင်း/ဖျက်ခြင်း နှင့် ငွေစာရင်း အပြီးတိုင်ဖျက်ခြင်း)
+// ၄။ Admin Panel
 async function loadAdminPanel() {
     const container = document.getElementById('admin-panel-content');
     container.innerHTML = `
