@@ -19,9 +19,8 @@
     <!-- App Main Container -->
     <div class="container">
         
-        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
+        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section - စုငွေအကျဉ်းချုပ်နှင့် ဆက်သွယ်ရန်သာ ပြမည်) -->
         <div id="section-home" class="content-section">
-            <!-- စုစုပေါင်း စုငွေ Dashboard Card -->
             <div class="card home-header-card">
                 <h2>စုစုပေါင်း စုငွေ ရှင်းတမ်း</h2>
                 <div class="total-funds-container">
@@ -41,9 +40,11 @@
                     </a>
                 </div>
             </div>
+        </div>
 
-            <!-- ငွေသွင်း/ငွေထုတ် ဖောင် -->
-            <div class="card" style="margin-top: 20px;">
+        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် စာမျက်နှာ (Wallet Section - သီးသန့်ခွဲထုတ်ထားသည်) -->
+        <div id="section-wallet" class="content-section" style="display: none;">
+            <div class="card">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
                 
                 <div class="amount-input-group">
@@ -90,7 +91,7 @@
             </div>
         </div>
 
-        <!-- ၂။ Users စာမျက်နှာ (အဖွဲ့ဝင်များ စာရင်း) -->
+        <!-- ၃။ Users စာမျက်နှာ (အဖွဲ့ဝင်များ စာရင်းနှင့် စုငွေ) -->
         <div id="section-users" class="content-section" style="display: none;">
             <div class="card">
                 <h2>အဖွဲ့ဝင်များ စာရင်း (Users)</h2>
@@ -100,7 +101,7 @@
             </div>
         </div>
 
-        <!-- ၃။ Settings စာမျက်နှာ (ပရိုဖိုင်၊ Social Links နှင့် SS များ ထည့်ရန်) -->
+        <!-- ၄။ Settings စာမျက်နှာ (Social Links တစ်ခုစီအလိုက် SS ပုံပါ ထည့်နိုင်သော ပုံစံ) -->
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ပရိုဖိုင် နှင့် ဆက်တင်များ (Settings)</h2>
@@ -112,29 +113,18 @@
                     <input type="file" id="settings-photo-file" accept="image/*" class="file-input" style="margin-bottom: 10px;">
                     <div id="current-profile-preview" style="margin-bottom: 15px;"></div>
 
-                    <label class="input-label">ဆက်သွယ်ရန် ဆိုရှယ်မီဒီယာ လင့်ခ်များ (Social Links)</label>
+                    <label class="input-label">ဆက်သွယ်ရန် အချက်အလက်များနှင့် Profile SS ပုံများ</label>
                     <div id="social-links-container">
-                        <div class="social-input-row">
-                            <input type="text" placeholder="Platform (ဥပမာ- Telegram)" class="social-platform form-input" value="Telegram" style="width: 35%;">
-                            <input type="text" placeholder="Link (https://t.me/...)" class="social-url form-input" style="flex: 1;">
-                        </div>
-                        <div class="social-input-row">
-                            <input type="text" placeholder="Platform (ဥပမာ- Facebook)" class="social-platform form-input" value="Facebook" style="width: 35%;">
-                            <input type="text" placeholder="Link (https://facebook.com/...)" class="social-url form-input" style="flex: 1;">
-                        </div>
+                        <!-- Dynamic Social Rows ဝင်လာမည် -->
                     </div>
-                    <button type="button" onclick="addSocialLinkField()" class="btn-add-more">+ လင့်ခ်အသစ် ထပ်ထည့်မည်</button>
+                    <button type="button" onclick="addSocialLinkRow()" class="btn-add-more">+ ဆက်သွယ်ရန် အကောင့်အသစ် ထပ်ထည့်မည်</button>
 
-                    <label class="input-label" style="margin-top: 15px;">အတည်ပြုချက် စခရင်ရှော့ ပုံများ (SS Upload)</label>
-                    <input type="file" id="settings-ss-files" accept="image/*" multiple class="file-input" style="margin-bottom: 10px;">
-                    <div id="current-ss-preview" class="ss-preview-container"></div>
-
-                    <button onclick="saveMemberSettings()" class="btn btn-deposit" style="width: 100%; margin-top: 20px;">အပြောင်းအလဲများကို သိမ်းဆည်းမည်</button>
+                    <button onclick="saveMemberSettings()" class="btn btn-deposit" style="width: 100%; margin-top: 25px;">အပြောင်းအလဲများကို သိမ်းဆည်းမည်</button>
                 </div>
             </div>
         </div>
 
-        <!-- ၄။ Admin Panel စာမျက်နှာ -->
+        <!-- ၅။ Admin Panel စာမျက်နှာ -->
         <div id="section-admin" class="content-section" style="display: none;">
             <div class="card">
                 <h2>Admin Panel စီမံခန့်ခွဲမှု</h2>
@@ -146,11 +136,15 @@
 
     </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Bottom Navigation Bar (၆ ခုလုံး သီးသန့်ပါဝင်သည်) -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchSection('home', event)">
             <i class="fas fa-home"></i>
             <span>ပင်မ</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('wallet', event)">
+            <i class="fas fa-wallet"></i>
+            <span>ငွေစာရင်း</span>
         </div>
         <div class="nav-item" onclick="switchSection('users', event)">
             <i class="fas fa-users"></i>
