@@ -13,32 +13,27 @@
         :root { --primary: #059669; --primary-light: #ecfdf5; --bg-color: #f3f4f6; --sidebar-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; }
         body { font-family: 'Padauk', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
         
-        /* Auth */
         #auth-screen { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #d1fae5, #ecfdf5); }
         .auth-box { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 40px rgba(5, 150, 105, 0.1); width: 90%; max-width: 400px; text-align: center; }
         
-        input, .file-upload { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #d1d5db; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box; font-family: 'Padauk', sans-serif; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+        input, select, textarea, .file-upload { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #d1d5db; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; box-sizing: border-box; font-family: 'Padauk', sans-serif; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
         
         button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; font-family: 'Padauk', sans-serif; }
         .btn-main { background: var(--primary); color: white; }
         .btn-sub { background: var(--primary-light); color: var(--primary); }
         .btn-danger { background: #fee2e2; color: #ef4444; }
 
-        /* Layout */
         #app-screen { display: none; width: 100%; height: 100vh; flex-direction: column; }
-        
-        /* Top Bar (Mobile Logo visibility) */
         .top-bar { display: flex; align-items: center; gap: 15px; padding: 15px 25px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
         .top-bar img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .top-bar h3 { margin: 0; color: var(--primary); font-size: 20px; }
 
         .app-body { display: flex; flex: 1; overflow: hidden; }
 
-        /* Sidebar / Bottom Nav */
         .sidebar { width: 260px; background: var(--sidebar-bg); box-shadow: 2px 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         .nav-items { flex: 1; padding: 15px 10px; overflow-y: auto; }
-        .nav-item { padding: 15px 20px; margin-bottom: 5px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: var(--text-sub); font-weight: bold; transition: 0.3s; }
+        .nav-item { padding: 14px 20px; margin-bottom: 5px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: var(--text-sub); font-weight: bold; transition: 0.3s; }
         .nav-item:hover, .nav-item.active { background: var(--primary-light); color: var(--primary); }
         .nav-item i { font-size: 18px; width: 20px; text-align: center; }
 
@@ -47,17 +42,17 @@
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UI Elements */
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
         .profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-light); }
+        
         .total-box { background: linear-gradient(135deg, var(--primary), #047857); color: white; padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
+        .total-amount-row { display: flex; justify-content: space-around; margin-top: 15px; flex-wrap: wrap; gap: 10px; }
+        .total-amount-box { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px; }
         
         .user-list { list-style: none; padding: 0; margin: 0; }
-        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: white; margin-bottom: 10px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .user-row:hover { border-color: var(--primary); }
+        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: white; margin-bottom: 10px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid transparent; transition: 0.2s; }
         .user-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; }
 
-        /* Timeline History */
         .timeline { list-style: none; padding: 0; border-left: 3px solid #e5e7eb; margin-left: 20px; }
         .timeline li { margin-bottom: 15px; padding-left: 20px; position: relative; }
         .timeline li::before { content: ''; position: absolute; left: -10px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); border: 3px solid white; }
@@ -68,13 +63,20 @@
         .btn-group { display: flex; gap: 10px; }
         .btn-group button { flex: 1; }
 
-        /* Mobile Responsive */
+        /* Social badges in directory */
+        .social-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; text-decoration: none; margin: 3px; color: white; }
+        .bg-fb { background: #1877f2; }
+        .bg-tg { background: #229ed9; }
+        .bg-viber { background: #7360f2; }
+        .bg-tt { background: #010101; }
+        .bg-yt { background: #ff0000; }
+
         @media (max-width: 768px) {
             .app-body { flex-direction: column; }
             .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; border-radius: 20px 20px 0 0; }
             .nav-items { display: flex; flex-direction: row; justify-content: space-around; padding: 5px; overflow: hidden; }
-            .nav-item { flex-direction: column; gap: 5px; padding: 10px; font-size: 11px; margin: 0; border-radius: 12px; }
-            .nav-item i { font-size: 22px; }
+            .nav-item { flex-direction: column; gap: 4px; padding: 8px; font-size: 10px; margin: 0; border-radius: 12px; }
+            .nav-item i { font-size: 20px; }
             .top-bar { padding: 12px 20px; }
         }
     </style>
@@ -103,6 +105,7 @@
             <div class="nav-items">
                 <div class="nav-item active" onclick="switchPage('main')"><i class="fa-solid fa-house"></i> <span>Main</span></div>
                 <div class="nav-item" onclick="switchPage('deposit')"><i class="fa-solid fa-hand-holding-dollar"></i> <span>ငွေစုမယ်</span></div>
+                <div class="nav-item" onclick="switchPage('directory')"><i class="fa-solid fa-address-book"></i> <span>အဖွဲ့ဝင်စာရင်း</span></div>
                 <div class="nav-item" onclick="switchPage('users')"><i class="fa-solid fa-users"></i> <span>Users</span></div>
                 <div class="nav-item" onclick="switchPage('settings')"><i class="fa-solid fa-gear"></i> <span>Settings</span></div>
                 <div class="nav-item" id="nav-admin" style="display:none;" onclick="switchPage('admin')"><i class="fa-solid fa-shield-halved"></i> <span>Admin</span></div>
@@ -117,25 +120,47 @@
                     <img id="my-profile-img" src="" class="profile-img">
                     <div>
                         <h3 id="my-name" style="margin: 0 0 5px 0;">-</h3>
-                        <p style="margin:0; color: #6b7280;">သင်၏ စုငွေ: <b id="my-savings-display" style="color:#059669; font-size: 20px;">0</b> ကျပ်</p>
+                        <p style="margin:0; color: #6b7280; font-size:14px;">သင်၏ စုငွေ:</p>
+                        <p style="margin:5px 0 0 0; color:#059669; font-weight:bold;">
+                            <span id="my-savings-mmk">0</span> MMK | <span id="my-savings-thb">0</span> THB
+                        </p>
                     </div>
                 </div>
                 
                 <div class="total-box">
-                    <p style="margin: 0 0 5px 0; opacity: 0.9;">ယနေ့အထိ စုစုပေါင်း ရန်ပုံငွေ</p>
-                    <h1 style="margin: 0; font-size: 38px;"><span id="app-total">0</span> ကျပ်</h1>
+                    <p style="margin: 0; opacity: 0.9; font-size:18px;">ယနေ့အထိ စုစုပေါင်း ရန်ပုံငွေ</p>
+                    <div class="total-amount-row">
+                        <div class="total-amount-box">
+                            <h2 style="margin:0;"><span id="app-total-mmk">0</span> <small>MMK</small></h2>
+                        </div>
+                        <div class="total-amount-box">
+                            <h2 style="margin:0;"><span id="app-total-thb">0</span> <small>THB</small></h2>
+                        </div>
+                    </div>
                 </div>
                 <div class="card" style="text-align:center; background:#e0f2fe; color:#0284c7; padding:15px;">
                     <i class="fa-brands fa-telegram"></i> Admin Tg Account - @paramiteam
                 </div>
             </div>
 
-            <!-- 2. Deposit (Transaction) -->
+            <!-- 2. Deposit -->
             <div id="page-deposit" class="page">
                 <div class="card">
                     <h2><i class="fa-solid fa-hand-holding-dollar"></i> ငွေသွင်း / ငွေထုတ် ပြုလုပ်ရန်</h2>
-                    <p style="color: #6b7280;">လက်ရှိ သင့်စုငွေ: <b id="deposit-current-amt" style="color:#059669; font-size: 18px;">0</b> ကျပ်</p>
                     
+                    <div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px;">
+                        <p style="margin:0; color:#6b7280; font-size:14px;">လက်ရှိ သင့်စုငွေ:</p>
+                        <p style="margin:5px 0 0 0; font-weight:bold; color:#059669;">
+                            <span id="deposit-current-mmk">0</span> MMK &nbsp;|&nbsp; <span id="deposit-current-thb">0</span> THB
+                        </p>
+                    </div>
+                    
+                    <label style="font-weight:bold; color:#374151;">ငွေကြေးအမျိုးအစား ရွေးချယ်ပါ</label>
+                    <select id="trans-currency">
+                        <option value="MMK">MMK (မြန်မာကျပ်)</option>
+                        <option value="THB">THB (ထိုင်းဘတ်)</option>
+                    </select>
+
                     <input type="number" id="trans-amount" placeholder="ငွေပမာဏ ရိုက်ထည့်ပါ">
                     <input type="text" id="trans-note" placeholder="မှတ်ချက် (ဥပမာ - ပထမအကြိမ် လှူဒါန်းခြင်း)">
                     
@@ -151,7 +176,16 @@
                 </div>
             </div>
 
-            <!-- 3. Users List -->
+            <!-- 3. Directory (တရားဝင် အဖွဲ့ဝင်များ စာရင်းနှင့် ဆက်သွယ်ရန်) -->
+            <div id="page-directory" class="page">
+                <div class="card">
+                    <h2><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> တရားဝင် အဖွဲ့ဝင်များ စာရင်းနှင့် ဆက်သွယ်ရန်</h2>
+                    <p style="color:var(--text-sub); font-size:14px;">အလှူခံရာတွင် အလွဲသုံးစားလုပ်မှုများ မရှိစေရန် ဤစာရင်းရှိ တရားဝင် အဖွဲ့ဝင်များနှင့်သာ ဆက်သွယ်လှူဒါန်းပါ။</p>
+                    <div id="directory-list" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- 4. Users List -->
             <div id="page-users" class="page">
                 <div class="card">
                     <h2><i class="fa-solid fa-users"></i> ပါဝင်ကုသိုလ်ပြုသူများ</h2>
@@ -159,13 +193,16 @@
                 </div>
             </div>
 
-            <!-- 4. View Other User Profile -->
+            <!-- 5. View Other User Profile -->
             <div id="page-profile-view" class="page">
                 <div class="card" style="text-align: center;">
                     <img id="view-user-img" src="" class="profile-img" style="margin:auto; display:block; width:100px; height:100px;">
                     <h2 id="view-user-name" style="margin: 10px 0 5px 0;">-</h2>
-                    <p style="color: #6b7280; font-size: 18px;">စုစုပေါင်း: <b id="view-user-total" style="color:#059669;">0</b> ကျပ်</p>
-                    <button class="btn-sub" onclick="switchPage('users')" style="width: auto; padding: 8px 20px; font-size:14px;">နောက်သို့ ပြန်သွားမည်</button>
+                    <div style="background:#ecfdf5; display:inline-block; padding:10px 20px; border-radius:20px; margin-bottom:15px; border: 1px solid #a7f3d0;">
+                        <b id="view-user-total-mmk" style="color:#059669;">0</b> MMK &nbsp;|&nbsp; 
+                        <b id="view-user-total-thb" style="color:#059669;">0</b> THB
+                    </div>
+                    <button class="btn-sub" onclick="switchPage('users')" style="width: auto; padding: 8px 20px; font-size:14px; display:block; margin:auto;">နောက်သို့ ပြန်သွားမည်</button>
                 </div>
                 <div class="card">
                     <h3 style="margin-top:0;">လှုပ်ရှားမှု မှတ်တမ်းများ</h3>
@@ -173,10 +210,10 @@
                 </div>
             </div>
 
-            <!-- 5. Settings (Gallery Upload) -->
+            <!-- 6. Settings (Social Links & Verification SS) -->
             <div id="page-settings" class="page">
                 <div class="card">
-                    <h2><i class="fa-solid fa-gear"></i> Profile ပြင်ဆင်ရန်</h2>
+                    <h2><i class="fa-solid fa-gear"></i> Profile & ဆက်သွယ်ရန် လိပ်စာများ ပြင်ဆင်ရန်</h2>
                     
                     <label style="font-weight:bold; color:#374151;">Account Name</label>
                     <input type="text" id="set-name" placeholder="အမည်သစ် ရိုက်ထည့်ပါ">
@@ -184,19 +221,48 @@
                     <label style="font-weight:bold; color:#374151; margin-top:15px; display:block;">Profile ပုံ (Gallery မှ ရွေးချယ်ရန်)</label>
                     <input type="file" id="set-photo-file" class="file-upload" accept="image/*">
                     <img id="preview-photo" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; display:none; margin: 10px auto;">
+
+                    <hr style="margin: 25px 0; border:0; border-top:1px solid #e5e7eb;">
+                    <h3 style="color:var(--primary); margin-bottom:5px;"><i class="fa-solid fa-share-nodes"></i> ဆက်သွယ်ရန် အကောင့်များ ဖြည့်သွင်းရန်</h3>
+                    <p style="font-size:13px; color:var(--text-sub);">အဖွဲ့ဝင်အဖြစ် အတည်ပြုနိုင်ရန် မိမိသုံးသည့် Account Name သို့မဟုတ် Username ကို ဖြည့်ပါ။</p>
+
+                    <label style="font-size:14px; font-weight:bold;">Facebook Account / Username</label>
+                    <input type="text" id="soc-fb" placeholder="ဥပမာ - Ko Kyaw">
+
+                    <label style="font-size:14px; font-weight:bold;">Telegram Account / Username</label>
+                    <input type="text" id="soc-tg" placeholder="ဥပမာ - @kokyaw">
+
+                    <label style="font-size:14px; font-weight:bold;">Viber Phone / Username</label>
+                    <input type="text" id="soc-viber" placeholder="ဥပမာ - 09xxxxxxxxx">
+
+                    <label style="font-size:14px; font-weight:bold;">TikTok Username</label>
+                    <input type="text" id="soc-tt" placeholder="ဥပမာ - @kokyaw">
+
+                    <label style="font-size:14px; font-weight:bold;">YouTube Channel Name</label>
+                    <input type="text" id="soc-yt" placeholder="ဥပမာ - Ko Kyaw Channel">
+
+                    <label style="font-weight:bold; color:#ef4444; margin-top:15px; display:block;">အကောင့်ပိုင်ဆိုင်ကြောင်း အတည်ပြုရန် Screenshot (မဖြစ်မနေ)</label>
+                    <p style="font-size:12px; color:var(--text-sub);">မိမိ၏ ဆိုရှယ်မီဒီယာအကောင့် Profile ပုံစံ Screenshot ကို တင်ပေးပါ။</p>
+                    <input type="file" id="set-ss-file" class="file-upload" accept="image/*">
+                    <img id="preview-ss" src="" style="width:100%; max-height:200px; object-fit:contain; display:none; margin: 10px auto; border-radius:8px; border:1px solid #d1d5db;">
                     
                     <button class="btn-main" onclick="saveSettings()" style="margin-top:20px;">ပြင်ဆင်မှုများ သိမ်းမည်</button>
                 </div>
             </div>
 
-            <!-- 6. Admin -->
+            <!-- 7. Admin -->
             <div id="page-admin" class="page">
                 <div class="card">
                     <h2><i class="fa-solid fa-shield-halved" style="color:#d97706;"></i> Admin Dashboard</h2>
-                    <h4 style="color:#d97706;">ခွင့်ပြုချက် တောင်းခံထားသူများ</h4>
-                    <ul id="admin-pending-list" class="user-list"></ul>
-                    <h4 style="color:#d97706; margin-top:30px;">အဖွဲ့ဝင်များ စီမံရန်</h4>
+                    
+                    <h4 style="color:#ef4444; border-bottom:1px solid #eee; padding-bottom:10px;">ငွေစာရင်း ဖျက်သိမ်းရန် တောင်းဆိုချက်များ</h4>
+                    <ul id="admin-delete-requests" class="user-list"></ul>
+
+                    <h4 style="color:#d97706; border-bottom:1px solid #eee; padding-bottom:10px; margin-top:30px;">အဖွဲ့ဝင်များ စီမံရန်</h4>
                     <ul id="admin-approved-list" class="user-list"></ul>
+
+                    <h4 style="color:#d97706; margin-top:30px;">ခွင့်ပြုချက် တောင်းခံထားသူများ</h4>
+                    <ul id="admin-pending-list" class="user-list"></ul>
                 </div>
             </div>
         </div>
@@ -209,7 +275,9 @@
     const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const PSEUDO_DOMAIN = '@paramitracker.com';
 
-    let currentUser = null; let currentMemberData = null; let currentPhotoBase64 = null;
+    let currentUser = null; 
+    let currentPhotoBase64 = null;
+    let currentSSBase64 = null;
 
     const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
     function showSuccess(msg) { Swal.fire({ icon: 'success', title: 'အောင်မြင်ပါသည်', text: msg, confirmButtonColor: '#059669' }); }
@@ -252,6 +320,7 @@
         event.currentTarget.classList.add('active');
 
         if(pageId === 'deposit') loadMyTimeline();
+        if(pageId === 'directory') loadDirectory();
         if(pageId === 'users') loadUsersList();
         if(pageId === 'admin') loadAdminData();
     }
@@ -262,7 +331,6 @@
 
         currentUser = user;
         const { data: member } = await myDB.from('members').select('*').eq('id', user.id).single();
-        currentMemberData = member;
 
         if (member) {
             Swal.close();
@@ -282,6 +350,20 @@
                 document.getElementById('preview-photo').style.display = 'block';
             }
 
+            // Load saved social links
+            let soc = member.social_links || {};
+            document.getElementById('soc-fb').value = soc.fb || '';
+            document.getElementById('soc-tg').value = soc.tg || '';
+            document.getElementById('soc-viber').value = soc.viber || '';
+            document.getElementById('soc-tt').value = soc.tt || '';
+            document.getElementById('soc-yt').value = soc.yt || '';
+
+            currentSSBase64 = member.verification_screenshot;
+            if(currentSSBase64) {
+                document.getElementById('preview-ss').src = currentSSBase64;
+                document.getElementById('preview-ss').style.display = 'block';
+            }
+
             if(member.role === 'admin') document.getElementById('nav-admin').style.display = 'flex';
             loadDashboardData();
         }
@@ -291,19 +373,77 @@
     async function loadDashboardData() {
         const { data: savings } = await myDB.from('savings').select('*');
         if (savings) {
-            let total = savings.reduce((sum, rec) => sum + Number(rec.saved_amount), 0);
-            document.getElementById('app-total').innerText = total.toLocaleString();
+            let totalMMK = savings.reduce((sum, rec) => sum + Number(rec.saved_amount || 0), 0);
+            let totalTHB = savings.reduce((sum, rec) => sum + Number(rec.saved_amount_thb || 0), 0);
+            
+            document.getElementById('app-total-mmk').innerText = totalMMK.toLocaleString();
+            document.getElementById('app-total-thb').innerText = totalTHB.toLocaleString();
 
             let mySaving = savings.find(r => r.id === currentUser.id);
-            let myAmt = mySaving ? Number(mySaving.saved_amount) : 0;
+            let myMMK = mySaving ? Number(mySaving.saved_amount || 0) : 0;
+            let myTHB = mySaving ? Number(mySaving.saved_amount_thb || 0) : 0;
             
-            document.getElementById('my-savings-display').innerText = myAmt.toLocaleString();
-            document.getElementById('deposit-current-amt').innerText = myAmt.toLocaleString();
+            document.getElementById('my-savings-mmk').innerText = myMMK.toLocaleString();
+            document.getElementById('my-savings-thb').innerText = myTHB.toLocaleString();
+            
+            document.getElementById('deposit-current-mmk').innerText = myMMK.toLocaleString();
+            document.getElementById('deposit-current-thb').innerText = myTHB.toLocaleString();
         }
     }
 
-    // --- Transaction (Deposit & Withdraw) ---
+    // --- Directory (အဖွဲ့ဝင်များ စာရင်းနှင့် ဆက်သွယ်ရန် ပြသခြင်း) ---
+    async function loadDirectory() {
+        document.getElementById('directory-list').innerHTML = "<p>Loading...</p>";
+        const { data: members } = await myDB.from('members').select('*').eq('is_approved', true).order('username');
+
+        let html = '';
+        if(members && members.length > 0) {
+            members.forEach(m => {
+                let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                let soc = m.social_links || {};
+                let ss = m.verification_screenshot;
+
+                let socialBtns = '';
+                if(soc.fb) socialBtns += `<span class="social-badge bg-fb"><i class="fa-brands fa-facebook"></i> ${soc.fb}</span>`;
+                if(soc.tg) socialBtns += `<span class="social-badge bg-tg"><i class="fa-brands fa-telegram"></i> ${soc.tg}</span>`;
+                if(soc.viber) socialBtns += `<span class="social-badge bg-viber"><i class="fa-brands fa-viber"></i> ${soc.viber}</span>`;
+                if(soc.tt) socialBtns += `<span class="social-badge bg-tt"><i class="fa-brands fa-tiktok"></i> ${soc.tt}</span>`;
+                if(soc.yt) socialBtns += `<span class="social-badge bg-yt"><i class="fa-brands fa-youtube"></i> ${soc.yt}</span>`;
+
+                if(!socialBtns) socialBtns = `<span style="color:#9ca3af; font-size:13px;">ဆက်သွယ်ရန် လိပ်စာ မထည့်ရသေးပါ။</span>`;
+
+                let ssHtml = ss ? `<button onclick="showSSModal('${ss}')" class="btn-sub" style="width:auto; padding:6px 12px; font-size:12px; margin-top:8px;"><i class="fa-solid fa-image"></i> အကောင့် Screenshot ကြည့်ရန်</button>` : `<span style="color:#ef4444; font-size:12px; display:block; margin-top:5px;">Screenshot မတင်ရသေးပါ</span>`;
+
+                html += `
+                <div class="card" style="display:flex; gap:15px; align-items:flex-start; background:#f9fafb; border:1px solid #e5e7eb; margin-bottom:15px;">
+                    <img src="${pic}" class="user-avatar" style="width:60px; height:60px;">
+                    <div style="flex:1;">
+                        <h3 style="margin:0 0 5px 0; color:var(--primary);">${m.username}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;">${socialBtns}</div>
+                        ${ssHtml}
+                    </div>
+                </div>`;
+            });
+        } else {
+            html = "<p>အတည်ပြုပြီး အဖွဲ့ဝင် မရှိသေးပါ။</p>";
+        }
+        document.getElementById('directory-list').innerHTML = html;
+    }
+
+    function showSSModal(base64Img) {
+        Swal.fire({
+            title: 'အကောင့် အတည်ပြု Screenshot',
+            imageUrl: base64Img,
+            imageWidth: '100%',
+            imageAlt: 'Verification Screenshot',
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'ပိတ်မည်'
+        });
+    }
+
+    // --- Transaction (Handle Currency) ---
     async function handleTransaction(type) {
+        let currency = document.getElementById('trans-currency').value;
         let amt = Number(document.getElementById('trans-amount').value);
         let note = document.getElementById('trans-note').value || (type==='deposit' ? 'ငွေသွင်းခြင်း' : 'ငွေပြန်နှုတ်ခြင်း');
         
@@ -311,30 +451,29 @@
 
         showLoading("လုပ်ဆောင်နေပါသည်...");
 
-        // Get current saving
-        const { data: savingData } = await myDB.from('savings').select('saved_amount').eq('id', currentUser.id).single();
-        let currentTotal = Number(savingData.saved_amount);
+        const { data: savingData } = await myDB.from('savings').select('*').eq('id', currentUser.id).single();
+        let currentMMK = Number(savingData.saved_amount || 0);
+        let currentTHB = Number(savingData.saved_amount_thb || 0);
 
-        if(type === 'withdraw' && amt > currentTotal) return showError("ပြန်နှုတ်မည့်ငွေက လက်ရှိစုငွေထက် များနေပါသည်။");
+        await myDB.from('transactions').insert({ user_id: currentUser.id, amount: amt, type: type, note: note, currency: currency, delete_request_status: 'none' });
 
-        let newTotal = type === 'deposit' ? currentTotal + amt : currentTotal - amt;
-
-        // 1. Insert into history
-        await myDB.from('transactions').insert({ user_id: currentUser.id, amount: amt, type: type, note: note });
-        // 2. Update savings table
-        const { error } = await myDB.from('savings').update({ saved_amount: newTotal, updated_at: new Date() }).eq('id', currentUser.id);
-        
-        if (error) { showError("အမှားရှိနေပါသည်။"); } 
-        else { 
-            showSuccess("အောင်မြင်စွာ မှတ်တမ်းတင်လိုက်ပါပြီ"); 
-            document.getElementById('trans-amount').value = ''; 
-            document.getElementById('trans-note').value = '';
-            loadDashboardData(); 
-            loadMyTimeline();
+        if (currency === 'MMK') {
+            if(type === 'withdraw' && amt > currentMMK) return showError("ပြန်နှုတ်မည့် MMK က လက်ရှိထက် များနေပါသည်။");
+            let newMMK = type === 'deposit' ? currentMMK + amt : currentMMK - amt;
+            await myDB.from('savings').update({ saved_amount: newMMK, updated_at: new Date() }).eq('id', currentUser.id);
+        } else {
+            if(type === 'withdraw' && amt > currentTHB) return showError("ပြန်နှုတ်မည့် THB က လက်ရှိထက် များနေပါသည်။");
+            let newTHB = type === 'deposit' ? currentTHB + amt : currentTHB - amt;
+            await myDB.from('savings').update({ saved_amount_thb: newTHB, updated_at: new Date() }).eq('id', currentUser.id);
         }
+        
+        showSuccess("အောင်မြင်စွာ မှတ်တမ်းတင်လိုက်ပါပြီ"); 
+        document.getElementById('trans-amount').value = ''; 
+        document.getElementById('trans-note').value = '';
+        loadDashboardData(); 
+        loadMyTimeline();
     }
 
-    // --- Timelines ---
     function formatTime(isoString) {
         let d = new Date(isoString);
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -347,16 +486,34 @@
 
     function renderTimeline(transData, elementId) {
         let html = '';
+        let isOwn = (elementId === 'my-timeline');
+        
         if(transData && transData.length > 0) {
             transData.forEach(t => {
                 let isDeposit = t.type === 'deposit';
                 let colorClass = isDeposit ? 'text-green' : 'text-red';
                 let sign = isDeposit ? '+' : '-';
+                let curr = t.currency || 'MMK';
+                
+                let actionHtml = '';
+                if (isOwn) {
+                    if (t.delete_request_status === 'pending') {
+                        actionHtml = `<span style="font-size:11px; color:#d97706; background:#fef3c7; padding:4px 8px; border-radius:12px; margin-top:5px; display:inline-block;">ဖျက်ရန် စောင့်ဆိုင်းဆဲ</span>`;
+                    } else {
+                        actionHtml = `<button onclick="requestDeleteTx('${t.id}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 10px; font-size:11px; border-radius:12px; margin-top:5px; width:auto; font-weight:bold;">အပြီးပိုင် ဖျက်ရန်</button>`;
+                    }
+                }
+
                 html += `
                 <li>
-                    <div class="time-date">${formatTime(t.created_at)}</div>
-                    <div class="time-amount ${colorClass}">${sign} ${Number(t.amount).toLocaleString()} ကျပ်</div>
-                    <div style="font-size:13px; color:#6b7280;">${t.note}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div class="time-date">${formatTime(t.created_at)}</div>
+                            <div class="time-amount ${colorClass}">${sign} ${Number(t.amount).toLocaleString()} ${curr}</div>
+                            <div style="font-size:13px; color:#6b7280; margin-top:2px;">${t.note}</div>
+                        </div>
+                        <div style="text-align:right;">${actionHtml}</div>
+                    </div>
                 </li>`;
             });
         } else {
@@ -365,7 +522,27 @@
         document.getElementById(elementId).innerHTML = html;
     }
 
-    // --- Users & Profiles ---
+    async function requestDeleteTx(txId) {
+        const { value: reason } = await Swal.fire({
+            title: 'Admin သို့ တောင်းပန်လွှာ',
+            input: 'textarea',
+            inputLabel: 'ဤငွေစာရင်းကို အပြီးပိုင်ဖျက်လိုသည့် အကြောင်းရင်းကို ရေးပါ',
+            inputPlaceholder: 'ဥပမာ - စာရင်းမှားထည့်မိလို့ပါ...',
+            showCancelButton: true,
+            confirmButtonText: 'တောင်းဆိုမည်',
+            cancelButtonText: 'မလုပ်ပါ',
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#ef4444'
+        });
+
+        if (reason) {
+            showLoading("တောင်းဆိုနေပါသည်...");
+            const {error} = await myDB.from('transactions').update({ delete_request_status: 'pending', delete_reason: reason }).eq('id', txId);
+            if(error) showError(error.message);
+            else { showSuccess("Admin ထံသို့ တောင်းဆိုချက် ပို့ပြီးပါပြီ"); loadMyTimeline(); }
+        }
+    }
+
     async function loadUsersList() {
         document.getElementById('users-list').innerHTML = "<p>Loading...</p>";
         const { data: members } = await myDB.from('members').select('*').eq('is_approved', true);
@@ -374,71 +551,103 @@
         let html = '';
         members.forEach(m => {
             let s = savings.find(x => x.id === m.id);
-            let amt = s ? Number(s.saved_amount).toLocaleString() : '0';
+            let mmk = s ? Number(s.saved_amount || 0).toLocaleString() : '0';
+            let thb = s ? Number(s.saved_amount_thb || 0).toLocaleString() : '0';
             let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
             
-            // Onclick added to view profile
             html += `
-            <li class="user-row" onclick="viewUserProfile('${m.id}', '${m.username}', '${pic}', '${amt}')">
+            <li class="user-row" onclick="viewUserProfile('${m.id}', '${m.username}', '${pic}', '${mmk}', '${thb}')" style="cursor:pointer;">
                 <div style="display:flex; align-items:center;">
                     <img src="${pic}" class="user-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
                     <span style="font-weight:bold;">${m.username}</span>
                 </div>
-                <div style="color:#059669; font-weight:bold;">${amt} ကျပ်</div>
+                <div style="text-align:right; font-size:13px;">
+                    <b style="color:#059669;">${mmk} MMK</b><br>
+                    <b style="color:#0284c7;">${thb} THB</b>
+                </div>
             </li>`;
         });
         document.getElementById('users-list').innerHTML = html;
     }
 
-    async function viewUserProfile(id, name, pic, amt) {
+    async function viewUserProfile(id, name, pic, mmk, thb) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-profile-view').classList.add('active');
 
         document.getElementById('view-user-img').src = pic;
         document.getElementById('view-user-name').innerText = name;
-        document.getElementById('view-user-total').innerText = amt;
+        document.getElementById('view-user-total-mmk').innerText = mmk;
+        document.getElementById('view-user-total-thb').innerText = thb;
 
         document.getElementById('view-user-timeline').innerHTML = "<p>Loading...</p>";
         const { data: trans } = await myDB.from('transactions').select('*').eq('user_id', id).order('created_at', {ascending: false});
         renderTimeline(trans, 'view-user-timeline');
     }
 
-    // --- Gallery Photo Upload & Settings ---
-    document.getElementById('set-photo-file').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-
-        // Compress image using Canvas to save DB space
+    // --- Image Compression for Profile & SS ---
+    function compressImage(file, maxWidth, callback) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 250; 
-                const scale = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scale;
+                const scale = maxWidth / img.width;
+                canvas.width = maxWidth;
+                canvas.height = img.height * (img.width > maxWidth ? scale : 1);
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                document.getElementById('preview-photo').src = currentPhotoBase64;
-                document.getElementById('preview-photo').style.display = 'block';
+                callback(canvas.toDataURL('image/jpeg', 0.7));
             }
             img.src = e.target.result;
         }
         reader.readAsDataURL(file);
+    }
+
+    document.getElementById('set-photo-file').addEventListener('change', function(event) {
+        if(event.target.files[0]) {
+            compressImage(event.target.files[0], 250, function(base64) {
+                currentPhotoBase64 = base64;
+                document.getElementById('preview-photo').src = base64;
+                document.getElementById('preview-photo').style.display = 'block';
+            });
+        }
+    });
+
+    document.getElementById('set-ss-file').addEventListener('change', function(event) {
+        if(event.target.files[0]) {
+            compressImage(event.target.files[0], 500, function(base64) {
+                currentSSBase64 = base64;
+                document.getElementById('preview-ss').src = base64;
+                document.getElementById('preview-ss').style.display = 'block';
+            });
+        }
     });
 
     async function saveSettings() {
         let newName = document.getElementById('set-name').value;
+        let socialLinks = {
+            fb: document.getElementById('soc-fb').value.trim(),
+            tg: document.getElementById('soc-tg').value.trim(),
+            viber: document.getElementById('soc-viber').value.trim(),
+            tt: document.getElementById('soc-tt').value.trim(),
+            yt: document.getElementById('soc-yt').value.trim()
+        };
+
+        if(!currentSSBase64) return showError("အကောင့်ပိုင်ဆိုင်ကြောင်း Screenshot ပုံကို မဖြစ်မနေ ထည့်သွင်းပေးပါ။");
+
         showLoading("ပြင်ဆင်နေပါသည်...");
-        const { error } = await myDB.from('members').update({ username: newName, profile_url: currentPhotoBase64 }).eq('id', currentUser.id);
+        const { error } = await myDB.from('members').update({ 
+            username: newName, 
+            profile_url: currentPhotoBase64,
+            social_links: socialLinks,
+            verification_screenshot: currentSSBase64
+        }).eq('id', currentUser.id);
+
         if (error) { showError("အမှားရှိနေပါသည်။"); } 
         else { 
-            showSuccess("Profile ပြင်ဆင်ပြီးပါပြီ"); 
+            showSuccess("Profile နှင့် ဆက်သွယ်ရန် လိပ်စာများ သိမ်းဆည်းပြီးပါပြီ"); 
             document.getElementById('my-name').innerText = newName;
-            document.getElementById('my-profile-img').src = currentPhotoBase64;
+            document.getElementById('my-profile-img').src = currentPhotoBase64 || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
         }
     }
 
@@ -461,20 +670,46 @@
                     </div>`;
 
                 if(!m.is_approved) {
-                    pendingHTML += `<li class="user-row">${basicInfo}<div><button class="btn-main" onclick="adminAction('${m.id}','approve')" style="padding:5px 10px; font-size:12px;">လက်ခံ</button></div></li>`;
+                    pendingHTML += `<li class="user-row">${basicInfo}<div><button class="btn-main" onclick="adminUserAction('${m.id}','approve')" style="padding:5px 10px; font-size:12px;">လက်ခံ</button></div></li>`;
                 } else {
                     let suspendBtn = m.is_suspended 
-                        ? `<button class="btn-sub" onclick="adminAction('${m.id}','resume')" style="padding:5px 10px; font-size:12px;">ဖွင့်</button>`
-                        : `<button style="background:#f59e0b; color:white; padding:5px 10px; font-size:12px; border:none; border-radius:12px;" onclick="adminAction('${m.id}','suspend')">ပိတ်</button>`;
-                    approvedHTML += `<li class="user-row">${basicInfo}<div style="display:flex; gap:5px;">${suspendBtn}<button class="btn-danger" onclick="adminAction('${m.id}','delete')" style="padding:5px 10px; font-size:12px;">ဖျက်</button></div></li>`;
+                        ? `<button class="btn-sub" onclick="adminUserAction('${m.id}','resume')" style="padding:5px 10px; font-size:12px;">ဖွင့်</button>`
+                        : `<button style="background:#f59e0b; color:white; padding:5px 10px; font-size:12px; border:none; border-radius:12px;" onclick="adminUserAction('${m.id}','suspend')">ပိတ်</button>`;
+                    approvedHTML += `<li class="user-row">${basicInfo}<div style="display:flex; gap:5px;">${suspendBtn}<button class="btn-danger" onclick="adminUserAction('${m.id}','delete')" style="padding:5px 10px; font-size:12px;">ဖျက်</button></div></li>`;
                 }
             }
         });
         document.getElementById('admin-pending-list').innerHTML = pendingHTML || "<p>လူသစ် မရှိပါ။</p>";
         document.getElementById('admin-approved-list').innerHTML = approvedHTML || "<p>အဖွဲ့ဝင် မရှိပါ။</p>";
+
+        const { data: delReqs } = await myDB.from('transactions').select('*, members(username)').eq('delete_request_status', 'pending');
+        let reqHTML = '';
+        if(delReqs && delReqs.length > 0) {
+            delReqs.forEach(r => {
+                let curr = r.currency || 'MMK';
+                let sign = r.type === 'deposit' ? '+' : '-';
+                reqHTML += `
+                <li class="user-row" style="flex-direction:column; align-items:flex-start;">
+                    <div style="display:flex; justify-content:space-width; width:100%; align-items:center;">
+                        <div>
+                            <b style="color:#059669;">${r.members ? r.members.username : 'Unknown'}</b> <br>
+                            <span style="font-size:13px; font-weight:bold;">${r.note} (${sign}${r.amount} ${curr})</span>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-main" onclick="approveTxDelete('${r.id}', '${r.user_id}', ${r.amount}, '${r.type}', '${curr}')" style="padding:5px 10px; font-size:12px;">ခွင့်ပြု</button>
+                            <button class="btn-danger" onclick="rejectTxDelete('${r.id}')" style="padding:5px 10px; font-size:12px;">ငြင်းမည်</button>
+                        </div>
+                    </div>
+                    <div style="background:#fef3c7; color:#d97706; padding:10px; border-radius:8px; width:100%; font-size:13px; margin-top:10px; box-sizing:border-box;">
+                        <b>တောင်းပန်လွှာ:</b> ${r.delete_reason}
+                    </div>
+                </li>`;
+            });
+        }
+        document.getElementById('admin-delete-requests').innerHTML = reqHTML || "<p>ဖျက်သိမ်းရန် တောင်းဆိုချက် မရှိပါ။</p>";
     }
 
-    async function adminAction(id, action) {
+    async function adminUserAction(id, action) {
         Swal.fire({ title: 'သေချာပါသလား?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#059669', confirmButtonText: 'သေချာပါသည်' }).then(async (result) => {
             if (result.isConfirmed) {
                 showLoading("လုပ်ဆောင်နေပါသည်...");
@@ -490,6 +725,28 @@
                 loadAdminData();
             }
         });
+    }
+
+    async function rejectTxDelete(txId) {
+        await myDB.from('transactions').update({delete_request_status: 'none', delete_reason: null}).eq('id', txId);
+        Toast.fire({ icon: 'success', title: 'ငြင်းပယ်လိုက်ပါပြီ' });
+        loadAdminData();
+    }
+
+    async function approveTxDelete(txId, userId, amount, type, currency) {
+        showLoading("အပြီးပိုင် ဖျက်သိမ်းနေပါသည်...");
+        const {data: sData} = await myDB.from('savings').select('*').eq('id', userId).single();
+        let col = currency === 'MMK' ? 'saved_amount' : 'saved_amount_thb';
+        let currentBal = Number(sData[col] || 0);
+        let newBal = type === 'deposit' ? currentBal - Number(amount) : currentBal + Number(amount);
+        
+        let payload = {}; payload[col] = newBal;
+        await myDB.from('savings').update(payload).eq('id', userId);
+        await myDB.from('transactions').delete().eq('id', txId);
+        
+        Swal.close(); Toast.fire({ icon: 'success', title: 'အပြီးပိုင် ဖျက်သိမ်းလိုက်ပါပြီ' });
+        loadAdminData();
+        loadDashboardData();
     }
 
     checkAuth();
