@@ -135,7 +135,7 @@
             </div>
         </div>
 
-        <!-- ၄။ Settings စာမျက်နှာ (Username, Display Name, Social Links) -->
+        <!-- ၄။ Settings စာမျက်နှာ (Username, Display Name, Profile Photo & Social Links) -->
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ပရိုဖိုင် နှင့် ဆက်တင်များ (Settings)</h2>
@@ -147,7 +147,12 @@
                     <input type="text" id="settings-name" placeholder="သင့်အမည် ရိုက်ထည့်ပါ" class="form-input" style="margin-bottom: 15px;">
 
                     <label class="input-label">ပရိုဖိုင် ပုံ (Profile Photo)</label>
-                    <input type="file" id="settings-photo-file" accept="image/*" class="file-input" style="margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <input type="file" id="settings-photo-file" accept="image/*" class="file-input" onchange="document.getElementById('btn-clear-profile-file').style.display = this.files.length ? 'inline-block' : 'none';">
+                        <button type="button" id="btn-clear-profile-file" onclick="clearSelectedProfileFile()" style="display: none; background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Padauk', sans-serif; white-space: nowrap;">
+                            <i class="fas fa-times"></i> ရွေးထားသည့်ပုံ ဖျက်မည်
+                        </button>
+                    </div>
                     <div id="current-profile-preview" style="margin-bottom: 15px;"></div>
 
                     <label class="input-label">ဆက်သွယ်ရန် အချက်အလက်များနှင့် Profile SS ပုံများ</label>
