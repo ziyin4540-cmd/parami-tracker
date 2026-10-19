@@ -16,10 +16,44 @@
 </head>
 <body>
 
-    <!-- App Main Container -->
-    <div class="container">
+    <!-- Auth Section (Login / Register) -->
+    <div id="section-auth" class="auth-container">
+        <div class="card auth-card">
+            <img src="logo.png" alt="Logo" class="auth-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+            <h2 id="auth-title">အကောင့်ဝင်ရောက်ရန်</h2>
+            
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div class="input-group">
+                    <label class="input-label">Username (အကောင့်ဝင်ရန် နာမည်)</label>
+                    <input type="text" id="auth-username" class="form-input" placeholder="e.g. wailinyan" required>
+                </div>
+
+                <div id="register-fields" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">အမည်ရင်း / Display Name</label>
+                        <input type="text" id="auth-name" class="form-input" placeholder="e.g. Wai Lin Yan (ခေါင်းဆောင်)">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">စကားဝှက် (Password)</label>
+                    <input type="password" id="auth-password" class="form-input" placeholder="စကားဝှက် ရိုက်ထည့်ပါ" required>
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="btn btn-deposit" style="width: 100%; margin-top: 15px;">ဝင်ရောက်မည်</button>
+            </form>
+
+            <div style="margin-top: 15px; text-align: center; font-size: 13px;">
+                <span id="auth-toggle-text">အကောင့်မရှိသေးပါက </span>
+                <a href="#" id="auth-toggle-btn" onclick="toggleAuthMode(event)" style="color: #059669; font-weight: bold; text-decoration: none;">အကောင့်သစ်ဖွင့်မည်</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Main Container (Login ဝင်ထားချိန်မှ ပေါ်မည်) -->
+    <div id="app-main" class="container" style="display: none;">
         
-        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section - စုငွေအကျဉ်းချုပ်နှင့် ဆက်သွယ်ရန်သာ ပြမည်) -->
+        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
         <div id="section-home" class="content-section">
             <div class="card home-header-card">
                 <h2>စုစုပေါင်း စုငွေ ရှင်းတမ်း</h2>
@@ -42,7 +76,7 @@
             </div>
         </div>
 
-        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် စာမျက်နှာ (Wallet Section - သီးသန့်ခွဲထုတ်ထားသည်) -->
+        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် စာမျက်နှာ (Wallet Section) -->
         <div id="section-wallet" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
@@ -55,7 +89,7 @@
                     <input type="number" id="trans-amount" placeholder="ငွေပမာဏ ရိုက်ထည့်ပါ" class="amount-input">
                 </div>
 
-                <input type="text" id="trans-note" placeholder="မှတ်ချက် ရိုက်ထည့်ရန်" class="form-input">
+                <input type="text" id="trans-note" placeholder="မှတ်ချက် ရိုက်ထည့်ရန်" class="form-input" style="margin-bottom: 12px;">
 
                 <!-- ပြင်ပအလှူရှင် Checkbox နှင့် Form -->
                 <div class="donor-box">
@@ -91,7 +125,7 @@
             </div>
         </div>
 
-        <!-- ၃။ Users စာမျက်နှာ (အဖွဲ့ဝင်များ စာရင်းနှင့် စုငွေ) -->
+        <!-- ၃။ Users စာမျက်နှာ (အဖွဲ့ဝင်များ စာရင်း) -->
         <div id="section-users" class="content-section" style="display: none;">
             <div class="card">
                 <h2>အဖွဲ့ဝင်များ စာရင်း (Users)</h2>
@@ -101,12 +135,15 @@
             </div>
         </div>
 
-        <!-- ၄။ Settings စာမျက်နှာ (Social Links တစ်ခုစီအလိုက် SS ပုံပါ ထည့်နိုင်သော ပုံစံ) -->
+        <!-- ၄။ Settings စာမျက်နှာ (Username, Display Name, Social Links) -->
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ပရိုဖိုင် နှင့် ဆက်တင်များ (Settings)</h2>
                 <div style="margin-top: 15px;">
-                    <label class="input-label">ပရိုဖိုင် အမည် (Profile Name)</label>
+                    <label class="input-label">Username (အကောင့်ဝင် နာမည်)</label>
+                    <input type="text" id="settings-username" class="form-input" style="margin-bottom: 15px; background: #f3f4f6;" readonly>
+
+                    <label class="input-label">အမည်ရင်း / Display Name</label>
                     <input type="text" id="settings-name" placeholder="သင့်အမည် ရိုက်ထည့်ပါ" class="form-input" style="margin-bottom: 15px;">
 
                     <label class="input-label">ပရိုဖိုင် ပုံ (Profile Photo)</label>
@@ -136,8 +173,8 @@
 
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (၆ ခုလုံး သီးသန့်ပါဝင်သည်) -->
-    <div class="bottom-nav">
+    <!-- Mobile Bottom Navigation Bar (Login ဝင်ထားချိန်မှ ပေါ်မည်) -->
+    <div id="app-nav" class="bottom-nav" style="display: none;">
         <div class="nav-item active" onclick="switchSection('home', event)">
             <i class="fas fa-home"></i>
             <span>ပင်မ</span>
@@ -164,7 +201,6 @@
         </div>
     </div>
 
-    <!-- JavaScript Link -->
     <script src="script.js"></script>
     <script>
         function toggleDonorForm() {
