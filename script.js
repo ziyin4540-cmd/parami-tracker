@@ -222,10 +222,13 @@ async function saveMemberSettings() {
     if (photoFile) {
         let fileName = 'profile_' + currentMemberId + '_' + Date.now() + '.jpg';
         let { error: uploadErr } = await myDB.storage.from('members_bucket').upload(fileName, photoFile);
-        if (!uploadErr) {
-            let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
-            profileUrl = pubUrl.publicUrl;
+        if (uploadErr) {
+            console.error('Profile Upload Error:', uploadErr);
+            Swal.fire('Upload အမှား', 'Profile ပုံ တင်၍မရပါ: ' + uploadErr.message, 'error');
+            return;
         }
+        let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
+        profileUrl = pubUrl.publicUrl;
     }
 
     // ၂။ Social Links & Individual SS Photos Upload
@@ -244,10 +247,13 @@ async function saveMemberSettings() {
             if (ssFileInput) {
                 let fileName = 'ss_' + currentMemberId + '_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.jpg';
                 let { error: ssErr } = await myDB.storage.from('members_bucket').upload(fileName, ssFileInput);
-                if (!ssErr) {
-                    let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
-                    finalSsUrl = pubUrl.publicUrl;
+                if (ssErr) {
+                    console.error('SS Upload Error:', ssErr);
+                    Swal.fire('Upload အမှား', 'SS ပုံ တင်၍မရပါ: ' + ssErr.message, 'error');
+                    return;
                 }
+                let { data: pubUrl } = myDB.storage.from('members_bucket').getPublicUrl(fileName);
+                finalSsUrl = pubUrl.publicUrl;
             }
 
             socialDataList.push({
@@ -276,7 +282,8 @@ async function saveMemberSettings() {
         loadHomeData();
         loadUsersDirectory();
     } else {
-        Swal.fire('အမှားရှိသည်', 'သိမ်းဆည်း၍ မရပါခင်ဗျာ။', 'error');
+        console.error('DB Update Error:', error);
+        Swal.fire('အမှားရှိသည်', 'Database ပြင်ဆင်၍ မရပါ: ' + error.message, 'error');
     }
 }
 
