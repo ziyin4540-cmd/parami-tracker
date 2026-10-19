@@ -17,10 +17,18 @@
 <body>
 
     <!-- App Container -->
-    <div id="app-container" class="container">
+    <div class="container">
         
-        <!-- ပင်မစာမျက်နှာ / ငွေစာရင်းသွင်းရန် -->
+        <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
         <div id="section-home" class="content-section">
+            <div class="card">
+                <h2>ပင်မစာမျက်နှာ</h2>
+                <p>Parami Group မှ ကြိုဆိုပါတယ်။ ဤနေရာတွင် အကျဉ်းချုပ် အချက်အလက်များကို ကြည့်ရှုနိုင်ပါသည်။</p>
+            </div>
+        </div>
+
+        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် စာမျက်နှာ (Wallet Section) -->
+        <div id="section-wallet" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
                 
@@ -59,27 +67,43 @@
                     <button onclick="addTransaction('withdraw')" style="flex: 1; background: #dc2626; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">ငွေပြန်နှုတ်မည်</button>
                 </div>
             </div>
+        </div>
 
-            <!-- ငွေစာရင်း မှတ်တမ်းများ -->
-            <div class="card" style="margin-top: 20px;">
-                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
-                <div id="transactions-list">
-                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
-                </div>
+        <!-- ၃။ Users စာမျက်နှာ -->
+        <div id="section-users" class="content-section" style="display: none;">
+            <div class="card">
+                <h2>Users စာရင်း</h2>
+                <p>အဖွဲ့ဝင်များ စာရင်းကို ဤနေရာတွင် ကြည့်ရှုနိုင်ပါသည်။</p>
+            </div>
+        </div>
+
+        <!-- ၄။ Settings စာမျက်နှာ -->
+        <div id="section-settings" class="content-section" style="display: none;">
+            <div class="card">
+                <h2>ဆက်တင်များ (Settings)</h2>
+                <p>အချက်အလက်များကို ပြင်ဆင်ရန်နေရာ။</p>
+            </div>
+        </div>
+
+        <!-- ၅။ Admin Panel စာမျက်နှာ -->
+        <div id="section-admin" class="content-section" style="display: none;">
+            <div class="card">
+                <h2>Admin Panel</h2>
+                <p>စီမံခန့်ခွဲမှု အပိုင်းများ။</p>
             </div>
         </div>
 
     </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Bottom Navigation Bar (Fixed to Bottom) -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchSection('home')">
             <i class="fas fa-home"></i>
-            <span>ပင်မစာမျက်နှာ</span>
+            <span>ပင်မ</span>
         </div>
         <div class="nav-item" onclick="switchSection('wallet')">
             <i class="fas fa-wallet"></i>
-            <span>ငွေစာရင်း သွင်း/ထုတ်</span>
+            <span>ငွေစာရင်း</span>
         </div>
         <div class="nav-item" onclick="switchSection('users')">
             <i class="fas fa-users"></i>
@@ -91,7 +115,7 @@
         </div>
         <div class="nav-item" onclick="switchSection('admin')">
             <i class="fas fa-shield-alt"></i>
-            <span>Admin Panel</span>
+            <span>Admin</span>
         </div>
         <div class="nav-item logout" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i>
@@ -99,13 +123,28 @@
         </div>
     </div>
 
-    <!-- JavaScript Script Link -->
+    <!-- JavaScript Scripts -->
     <script src="script.js"></script>
     <script>
         function toggleDonorForm() {
             const checkbox = document.getElementById('is-donor-checkbox');
             const formSection = document.getElementById('donor-form-section');
             formSection.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        function switchSection(sectionId) {
+            // Sections အားလုံးကို ဖျောက်မည်
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(sec => sec.style.display = 'none');
+
+            // ရွေးချယ်ထားသော Section ကို ပေါ်စေမည်
+            const target = document.getElementById('section-' + sectionId);
+            if (target) target.style.display = 'block';
+
+            // Nav items တွေရဲ့ active ကို ညှိမည်
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
         }
     </script>
 </body>
