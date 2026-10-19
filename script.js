@@ -5,7 +5,7 @@ const PSEUDO_DOMAIN = '@paramitracker.com';
 
 let currentUser = null; 
 let currentPhotoBase64 = null;
-let currentSSBase64 = null;
+let socialSS = { fb: null, tg: null, viber: null, tt: null, yt: null };
 
 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
 function showSuccess(msg) { Swal.fire({ icon: 'success', title: 'အောင်မြင်ပါသည်', text: msg, confirmButtonColor: '#059669' }); }
@@ -83,11 +83,13 @@ async function checkAuth() {
         document.getElementById('soc-tt').value = soc.tt || '';
         document.getElementById('soc-yt').value = soc.yt || '';
 
-        currentSSBase64 = member.verification_screenshot;
-        if(currentSSBase64) {
-            document.getElementById('preview-ss').src = currentSSBase64;
-            document.getElementById('preview-ss').style.display = 'block';
-        }
+        socialSS = member.social_screenshots || { fb: null, tg: null, viber: null, tt: null, yt: null };
+        ['fb', 'tg', 'viber', 'tt', 'yt'].forEach(k => {
+            if(socialSS[k]) {
+                document.getElementById(`preview-ss-${k}`).src = socialSS[k];
+                document.getElementById(`preview-ss-${k}`).style.display = 'block';
+            }
+        });
 
         if(member.role === 'admin') document.getElementById('nav-admin').style.display = 'flex';
         loadDashboardData();
@@ -117,33 +119,35 @@ async function loadDashboardData() {
 
 async function loadDirectory() {
     document.getElementById('directory-list').innerHTML = "<p>Loading...</p>";
-    const { data: members } = await myDB.from('members').select('*').eq('is_approved', true).order('username');
+    const { data: members, error } = await myDB.from('members').select('*').eq('is_approved', true).order('username');
+
+    if (error) {
+        document.getElementById('directory-list').innerHTML = "<p style='color:red;'>အချက်အလက် ဆွဲထုတ်ရာတွင် အမှားရှိနေပါသည်။ Supabase RLS ကို ပိတ်ထားပေးပါ။</p>";
+        return;
+    }
 
     let html = '';
     if(members && members.length > 0) {
         members.forEach(m => {
             let pic = m.profile_url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
             let soc = m.social_links || {};
-            let ss = m.verification_screenshot;
+            let sss = m.social_screenshots || {};
 
             let socialBtns = '';
-            if(soc.fb) socialBtns += `<span class="social-badge bg-fb"><i class="fa-brands fa-facebook"></i> ${soc.fb}</span>`;
-            if(soc.tg) socialBtns += `<span class="social-badge bg-tg"><i class="fa-brands fa-telegram"></i> ${soc.tg}</span>`;
-            if(soc.viber) socialBtns += `<span class="social-badge bg-viber"><i class="fa-brands fa-viber"></i> ${soc.viber}</span>`;
-            if(soc.tt) socialBtns += `<span class="social-badge bg-tt"><i class="fa-brands fa-tiktok"></i> ${soc.tt}</span>`;
-            if(soc.yt) socialBtns += `<span class="social-badge bg-yt"><i class="fa-brands fa-youtube"></i> ${soc.yt}</span>`;
+            if(soc.fb) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-fb"><i class="fa-brands fa-facebook"></i> ${soc.fb}</span> ${sss.fb ? `<button class="btn-ss" onclick="showSSModal('${sss.fb}', 'Facebook SS')">SS</button>` : ''}</div>`;
+            if(soc.tg) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-tg"><i class="fa-brands fa-telegram"></i> ${soc.tg}</span> ${sss.tg ? `<button class="btn-ss" onclick="showSSModal('${sss.tg}', 'Telegram SS')">SS</button>` : ''}</div>`;
+            if(soc.viber) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-viber"><i class="fa-brands fa-viber"></i> ${soc.viber}</span> ${sss.viber ? `<button class="btn-ss" onclick="showSSModal('${sss.viber}', 'Viber SS')">SS</button>` : ''}</div>`;
+            if(soc.tt) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-tt"><i class="fa-brands fa-tiktok"></i> ${soc.tt}</span> ${sss.tt ? `<button class="btn-ss" onclick="showSSModal('${sss.tt}', 'TikTok SS')">SS</button>` : ''}</div>`;
+            if(soc.yt) socialBtns += `<div style="margin-bottom:6px;"><span class="social-badge bg-yt"><i class="fa-brands fa-youtube"></i> ${soc.yt}</span> ${sss.yt ? `<button class="btn-ss" onclick="showSSModal('${sss.yt}', 'YouTube SS')">SS</button>` : ''}</div>`;
 
             if(!socialBtns) socialBtns = `<span style="color:#9ca3af; font-size:13px;">ဆက်သွယ်ရန် လိပ်စာ မထည့်ရသေးပါ။</span>`;
-
-            let ssHtml = ss ? `<button onclick="showSSModal('${ss}')" class="btn-sub" style="width:auto; padding:6px 12px; font-size:12px; margin-top:8px;"><i class="fa-solid fa-image"></i> အကောင့် Screenshot ကြည့်ရန်</button>` : `<span style="color:#ef4444; font-size:12px; display:block; margin-top:5px;">Screenshot မတင်ရသေးပါ</span>`;
 
             html += `
             <div class="card" style="display:flex; gap:15px; align-items:flex-start; background:#f9fafb; border:1px solid #e5e7eb; margin-bottom:15px;">
                 <img src="${pic}" class="user-avatar" style="width:60px; height:60px;">
                 <div style="flex:1;">
                     <h3 style="margin:0 0 5px 0; color:var(--primary);">${m.username}</h3>
-                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;">${socialBtns}</div>
-                    ${ssHtml}
+                    <div style="margin-top:5px;">${socialBtns}</div>
                 </div>
             </div>`;
         });
@@ -153,9 +157,9 @@ async function loadDirectory() {
     document.getElementById('directory-list').innerHTML = html;
 }
 
-function showSSModal(base64Img) {
+function showSSModal(base64Img, title) {
     Swal.fire({
-        title: 'အကောင့် အတည်ပြု Screenshot',
+        title: title,
         imageUrl: base64Img,
         imageWidth: '100%',
         imageAlt: 'Verification Screenshot',
@@ -334,15 +338,23 @@ document.getElementById('set-photo-file').addEventListener('change', function(ev
     }
 });
 
-document.getElementById('set-ss-file').addEventListener('change', function(event) {
-    if(event.target.files[0]) {
-        compressImage(event.target.files[0], 500, function(base64) {
-            currentSSBase64 = base64;
-            document.getElementById('preview-ss').src = base64;
-            document.getElementById('preview-ss').style.display = 'block';
-        });
-    }
-});
+// Social SS Handlers
+function setupSSUpload(key, previewId) {
+    document.getElementById(`set-ss-${key}-file`).addEventListener('change', function(event) {
+        if(event.target.files[0]) {
+            compressImage(event.target.files[0], 500, function(base64) {
+                socialSS[key] = base64;
+                document.getElementById(previewId).src = base64;
+                document.getElementById(previewId).style.display = 'block';
+            });
+        }
+    });
+}
+setupSSUpload('fb', 'preview-ss-fb');
+setupSSUpload('tg', 'preview-ss-tg');
+setupSSUpload('viber', 'preview-ss-viber');
+setupSSUpload('tt', 'preview-ss-tt');
+setupSSUpload('yt', 'preview-ss-yt');
 
 async function saveSettings() {
     let newName = document.getElementById('set-name').value;
@@ -354,17 +366,15 @@ async function saveSettings() {
         yt: document.getElementById('soc-yt').value.trim()
     };
 
-    if(!currentSSBase64) return showError("အကောင့်ပိုင်ဆိုင်ကြောင်း Screenshot ပုံကို မဖြစ်မနေ ထည့်သွင်းပေးပါ။");
-
     showLoading("ပြင်ဆင်နေပါသည်...");
     const { error } = await myDB.from('members').update({ 
         username: newName, 
         profile_url: currentPhotoBase64,
         social_links: socialLinks,
-        verification_screenshot: currentSSBase64
+        social_screenshots: socialSS
     }).eq('id', currentUser.id);
 
-    if (error) { showError("အမှားရှိနေပါသည်ောင်။"); } 
+    if (error) { showError("အမှားရှိနေပါသည်။"); } 
     else { 
         showSuccess("Profile နှင့် ဆက်သွယ်ရန် လိပ်စာများ သိမ်းဆည်းပြီးပါပြီ"); 
         document.getElementById('my-name').innerText = newName;
