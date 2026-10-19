@@ -5,6 +5,16 @@ const myDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentMember = null;
 let isRegisterMode = false;
 
+// Helper: Ensure URL has protocol (Avoid 404 errors)
+function formatUrl(urlStr) {
+    if (!urlStr) return '';
+    let trimmed = urlStr.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        return 'https://' + trimmed;
+    }
+    return trimmed;
+}
+
 // 1. Auth Check on Load
 function checkAuth() {
     const saved = localStorage.getItem('parami_logged_member');
@@ -96,7 +106,7 @@ async function handleAuth(e) {
     }
 }
 
-// 2. Home Data
+// 2. Home Data (Telegram Link ကို https://t.me/paramiteam သို့ မှန်ကန်စွာ ချိတ်ဆက်ထားသည်)
 async function loadHomeData() {
     const { data: trans } = await myDB.from('transactions').select('*');
     let totalMMK = 0;
@@ -116,8 +126,8 @@ async function loadHomeData() {
     document.getElementById('total-mmk').innerText = totalMMK.toLocaleString() + ' MMK';
     document.getElementById('total-thb').innerText = totalTHB.toLocaleString() + ' THB';
 
-    let teleLink = localStorage.getItem('parami_telegram') || 'https://t.me/yourname';
-    document.getElementById('telegram-link-btn').href = teleLink;
+    let teleLink = localStorage.getItem('parami_telegram') || 'https://t.me/paramiteam';
+    document.getElementById('telegram-link-btn').href = formatUrl(teleLink);
 
     loadTransactionsList(trans);
 }
@@ -249,7 +259,7 @@ async function loadUsersDirectory() {
     container.innerHTML = html;
 }
 
-// 5. Settings (USERNAME ဖြင့် တိုက်ရိုက် ချိတ်ဆက်ထားသဖြင့် ID Error လုံးဝ မတက်ပါ)
+// 5. Settings
 async function loadMemberSettings() {
     if (!currentMember) return;
     const { data: members, error } = await myDB
@@ -284,12 +294,12 @@ async function loadMemberSettings() {
             addSocialLinkRow(item.platform, item.link, item.ss, index);
         });
     } else {
-        addSocialLinkRow('Telegram', '', '', 0);
+        addSocialLinkRow('Telegram', 'https://t.me/paramiteam', '', 0);
         addSocialLinkRow('Facebook', '', '', 1);
     }
 }
 
-// Profile Photo Preview & Helper
+// Profile Photo Preview
 function renderProfilePreview(profileUrl) {
     const previewContainer = document.getElementById('current-profile-preview');
     if (!previewContainer) return;
@@ -389,7 +399,7 @@ function removeSocialRow(btnElem) {
     if (cardItem) cardItem.remove();
 }
 
-// SAVE Settings (Username ဖြင့် Update လုပ်သည့်အတွက် လုံးဝ အမှားမတက်ပါ)
+// SAVE Settings
 async function saveMemberSettings() {
     if (!currentMember) return;
     Swal.fire({ title: 'သိမ်းဆည်းနေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -418,7 +428,7 @@ async function saveMemberSettings() {
 
     for (let item of socialItems) {
         let pName = item.querySelector('.social-platform').value.trim();
-        let pLink = item.querySelector('.social-url').value.trim();
+        let pLink = formatUrl(item.querySelector('.social-url').value.trim());
         let ssFileInput = item.querySelector('.social-ss-file').files[0];
         let existingSsUrl = item.dataset.ssUrl || '';
 
@@ -454,7 +464,6 @@ async function saveMemberSettings() {
         social_links: socialDataList
     };
 
-    // ID အစား USERNAME ဖြင့် UPDATE ပြုလုပ်ပေးထားသည်
     const { data: updatedMembers, error } = await myDB
         .from('members')
         .update(updateData)
