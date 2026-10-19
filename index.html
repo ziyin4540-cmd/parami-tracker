@@ -21,22 +21,27 @@
         
         <!-- ၁။ ပင်မစာမျက်နှာ (Home Section) -->
         <div id="section-home" class="content-section">
-            <div class="card">
-                <h2>ပင်မစာမျက်နှာ (Dashboard)</h2>
-                <p>Parami Group မှ ကြိုဆိုပါတယ်။ အကျဉ်းချုပ် ငွေစာရင်းရှင်းတမ်းများကို ဤနေရာတွင် ကြيုရှုနိုင်ပါသည်။</p>
-            </div>
-            
-            <div class="card" style="margin-top: 20px;">
-                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
-                <div id="transactions-list">
-                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
+            <div class="card" style="text-align: center; background: linear-gradient(135deg, #059669, #047857); color: white;">
+                <h2>စုစုပေါင်း စုငွေ ရှင်းတမ်း</h2>
+                <div style="display: flex; justify-content: space-around; margin-top: 15px;">
+                    <div>
+                        <p style="margin: 0; font-size: 13px; opacity: 0.9;">MMK စုငွေ</p>
+                        <h3 id="total-mmk" style="margin: 5px 0 0 0; font-size: 22px;">0</h3>
+                    </div>
+                    <div>
+                        <p style="margin: 0; font-size: 13px; opacity: 0.9;">THB စုငွေ</p>
+                        <h3 id="total-thb" style="margin: 5px 0 0 0; font-size: 22px;">0</h3>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <a id="telegram-link-btn" href="#" target="_blank" style="background: white; color: #059669; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fab fa-telegram"></i> Telegram တွင် ဆက်သွယ်ရန်
+                    </a>
                 </div>
             </div>
-        </div>
 
-        <!-- ၂။ ငွေစာရင်း သွင်း/ထုတ် (Wallet Section) - ညီညာစေရန် Width များကို အချိုးကျပြင်ဆင်ထားသည် -->
-        <div id="section-wallet" class="content-section" style="display: none;">
-            <div class="card">
+            <!-- ငွေသွင်း/ထုတ် ဖောင် -->
+            <div class="card" style="margin-top: 20px;">
                 <h2>ငွေသွင်း / ငွေပြန်နှုတ် မှတ်တမ်း</h2>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
@@ -74,9 +79,17 @@
                     <button onclick="addTransaction('withdraw')" style="flex: 1; background: #dc2626; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">ငွေပြန်နှုတ်မည်</button>
                 </div>
             </div>
+
+            <!-- ငွေစာရင်း မှတ်တမ်းများ -->
+            <div class="card" style="margin-top: 20px;">
+                <h2>ငွေစာရင်း မှတ်တမ်းများ</h2>
+                <div id="transactions-list">
+                    <p style="color: #6b7280;">မှတ်တမ်း မရှိသေးပါခင်ဗျာ။</p>
+                </div>
+            </div>
         </div>
 
-        <!-- ၃။ Users စာမျက်နှာ (အဖွဲ့ဝင်များစာရင်း တကယ့်ဒေတာဖြင့် ပေါ်လာမည်) -->
+        <!-- ၂။ Users စာမျက်နှာ (အဖွဲ့ဝင်များစာရင်း၊ Profile photo, Name နဲ့ စုငွေ) -->
         <div id="section-users" class="content-section" style="display: none;">
             <div class="card">
                 <h2>အဖွဲ့ဝင်များ စာရင်း (Users)</h2>
@@ -86,15 +99,26 @@
             </div>
         </div>
 
-        <!-- ၄။ Settings စာမျက်နှာ -->
+        <!-- ၃။ Settings စာမျက်နှာ (Profile photo, Name, အလှူရှင်အချက်အလက်များ) -->
         <div id="section-settings" class="content-section" style="display: none;">
             <div class="card">
                 <h2>ဆက်တင်များ (Settings)</h2>
-                <p>သင့်ရဲ့ အကောင့်အချက်အလက်များနှင့် ပရိုဖိုင်ကို ဤနေရာတွင် ပြင်ဆင်နိုင်ပါသည်။</p>
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">ပရိုဖိုင် အမည် (Profile Name)</label>
+                    <input type="text" id="settings-name" placeholder="သင့်အမည်" style="margin-bottom: 12px;">
+
+                    <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">ပရိုဖိုင် ပုံ (Profile Photo)</label>
+                    <input type="file" id="settings-photo-file" accept="image/*" style="margin-bottom: 12px;">
+
+                    <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">အလှူရှင်များ ဆက်သွယ်ရန် အချက်အလက် / Telegram Link</label>
+                    <input type="text" id="settings-telegram" placeholder="https://t.me/yourname" style="margin-bottom: 15px;">
+
+                    <button onclick="saveSettings()" style="width: 100%; background: #059669; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">အပြောင်းအလဲများကို သိမ်းဆည်းမည်</button>
+                </div>
             </div>
         </div>
 
-        <!-- ၅။ Admin Panel စာမျက်နှာ -->
+        <!-- ၄။ Admin Panel စာမျက်နှာ (အကောင့်လက်ခံ/ငြင်းပယ်/ရပ်ဆိုင်း/ဖျက်ခြင်း နှင့် Delete Requests များ) -->
         <div id="section-admin" class="content-section" style="display: none;">
             <div class="card">
                 <h2>Admin Panel စီမံခန့်ခွဲမှု</h2>
@@ -111,10 +135,6 @@
         <div class="nav-item active" onclick="switchSection('home', event)">
             <i class="fas fa-home"></i>
             <span>ပင်မ</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('wallet', event)">
-            <i class="fas fa-wallet"></i>
-            <span>ငွေစာရင်း</span>
         </div>
         <div class="nav-item" onclick="switchSection('users', event)">
             <i class="fas fa-users"></i>
@@ -144,15 +164,12 @@
         }
 
         function switchSection(sectionId, event) {
-            // Sections အားလုံးကို ဖျောက်မည်
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(sec => sec.style.display = 'none');
 
-            // ရွေးချယ်ထားသော Section ကို ပေါ်စေမည်
             const target = document.getElementById('section-' + sectionId);
             if (target) target.style.display = 'block';
 
-            // Nav items တွေရဲ့ active ကို ညှိမည်
             const navItems = document.querySelectorAll('.bottom-nav .nav-item');
             navItems.forEach(item => item.classList.remove('active'));
             if (event && event.currentTarget) {
