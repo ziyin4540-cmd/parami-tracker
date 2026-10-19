@@ -184,6 +184,7 @@ function loadTransactionsList(trans) {
 }
 
 // 3. Transactions
+// 3. Transactions (ID လွဲမှားမှုမရှိအောင် Username ဖြင့် တိုက်ရိုက်ချိတ်ဆက်ထားသည်)
 async function addTransaction(type) {
     if (!currentMember) return;
     let currency = document.getElementById('trans-currency').value;
@@ -195,6 +196,12 @@ async function addTransaction(type) {
         Swal.fire('သတိပေးချက်', 'ကျေးဇူးပြု၍ ငွေပမာဏ မှန်ကန်စွာ ထည့်သွင်းပါ။', 'warning');
         return;
     }
+
+    Swal.fire({ title: 'သိမ်းဆည်းနေပါသည်...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    // Username ဖြင့် တကယ့် Member ID အမှန်ကို တိုက်ရိုက် ရှာဖွေခြင်း
+    const { data: memberData } = await myDB.from('members').select('id').eq('username', currentMember.username);
+    let memberId = (memberData && memberData.length > 0) ? memberData[0].id : currentMember.id;
 
     let donorName = '';
     let donorAddress = '';
@@ -216,7 +223,7 @@ async function addTransaction(type) {
     }
 
     let { error } = await myDB.from('transactions').insert([{
-        member_id: currentMember.id,
+        member_id: memberId,
         type: type,
         currency: currency,
         amount: Number(amount),
@@ -236,7 +243,7 @@ async function addTransaction(type) {
         loadHomeData();
         loadUsersDirectory();
     } else {
-        Swal.fire('အမှားရှိသည်', 'သိမ်းဆည်း၍ မရပါ၊ ထပ်မံကြိုးစားပါ။', 'error');
+        Swal.fire('အမှားရှိသည်', 'သိမ်းဆည်း၍ မရပါ: ' + error.message, 'error');
     }
 }
 
